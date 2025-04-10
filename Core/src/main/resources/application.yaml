@@ -1,0 +1,7 @@
+ktor:
+  application:
+    modules:
+      - me.mucloud.application.MK.ServerLauncher.ApplicationKt.module
+  deployment:
+    port: 20038
+  development: true
