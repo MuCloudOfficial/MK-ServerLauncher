@@ -3,7 +3,56 @@
 </script>
 
 <template>
-
+  <el-card>
+    <div class="text-5xl font-bold">MK-ServerLauncher</div>
+    <div class="text-2xl">MultiPlatform&WebServer Hybrid Edition</div>
+    <div class="text-xl my-1">VoidLand V2 DEV.16</div>
+    <el-divider content-position="left" class="border-2">
+      Based Framework & Tech
+    </el-divider>
+    <div>Backend: Kotlin 2.1.20 & Ktor 3.1.2</div>
+    <div>Frontend: Vue & Vite</div>
+    <el-divider content-position="left" class="border-2">
+      Author & Open-Source Repository
+    </el-divider>
+    <div>Author: Mu_Cloud</div>
+    <div>
+      <a class="underline" href="https://www.github.com/MuCloudOfficial/MK-ServerLauncher">Github Repository</a>
+      <el-icon size="13">
+        <svg class="stroke-2 stroke-gray-500" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" x2="21" y1="14" y2="3"/>
+        </svg>
+      </el-icon>
+    </div>
+    <el-divider content-position="left" class="border-2">
+      Project News
+    </el-divider>
+    <div>Want to subscribe and focus the latest news about MK-ServerLauncher<sup>MPE</sup>, welcome to see <a class="underline" href="https://mucloudofficial.github.io/MuBlog">MuBlog</a>
+      <el-icon size="13">
+        <svg class="stroke-2 stroke-gray-500" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" x2="21" y1="14" y2="3"/>
+        </svg>
+      </el-icon>
+      or Mu_Cloud's Social Medias.
+    </div>
+    <el-divider content-position="left" class="border-2">
+      Other Platform Editions
+    </el-divider>
+    About MK-ServerLauncher in other platform or forms, it will be published probably. But currently, MK-ServerLauncher is Only MPE,
+    please continue to follow <a class="underline" href="https://mucloudofficial.github.io/MuBlog">MuBlog</a>
+    <el-icon size="13">
+      <svg class="stroke-2 stroke-gray-500" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" x2="21" y1="14" y2="3"/>
+      </svg>
+    </el-icon>
+    or Mu_Cloud's Social Medias for related News.
+  </el-card>
 </template>
 
 <style scoped>

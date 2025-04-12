@@ -43,8 +43,8 @@ fun Application.initWebSocket() {
         webSocket("/api/v1/servers") {
             log.info("Connection [Servers Flow] -> [Status: CONNECTED]")
             val list = listOf<AbstractServer>(
-                MCJEServer(mcs_name = "TestServer", mcs_version = "v1.0.0", mcs_type = "Paper", mcs_desc = "???", mcs_location = "Unknown", mcs_env = JavaEnvironment("Java","Unknown","Unknown")),
-                MCJEServer(mcs_name = "TestServer", mcs_version = "v1.0.0", mcs_type = "Paper", mcs_desc = "???", mcs_location = "Unknown", mcs_env = JavaEnvironment("Java","Unknown","Unknown")),
+                MCJEServer(mcs_name = "MuServer1", mcs_version = "1.19.2", mcs_type = "Paper", mcs_desc = "???", mcs_location = "Unknown", mcs_env = JavaEnvironment("Java","Unknown","Unknown")),
+                MCJEServer(mcs_name = "MuServer2", mcs_version = "1.21.4", mcs_type = "Paper", mcs_desc = "???", mcs_location = "Unknown", mcs_env = JavaEnvironment("Java","Unknown","Unknown")),
             )
             sendSerialized(list)
         }
