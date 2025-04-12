@@ -1,14 +1,26 @@
 <script setup lang="ts">
-import {ref, shallowRef} from "vue";
+import {onMounted, ref, shallowRef} from "vue";
 import {useTransition} from "@vueuse/core";
+import {MuWebSocket} from "./Shared.vue";
 
-const instance = "ws://127.0.0.1:20038/api/v1/overview"
-const ws = new WebSocket(instance)
-let wsMsg = ref({})
+onMounted(() => {
+  const ws = new MuWebSocket("Overview")
+  let wsMsg = ref({})
+  if(ws.getMsg() != undefined){
+    wsMsg.value = ws.getMsg()
+    processCoreData(wsMsg)
+  }
+})
 
 let OnlineServerCount = shallowRef(0)
 let StoppedServerCount = shallowRef(0)
 let TotalServerCount = shallowRef(0)
+
+function processCoreData(msg: any){
+  TotalServerCount.value = msg.MuServer.Total
+  OnlineServerCount.value = msg.MuServer.Running
+  StoppedServerCount.value = TotalServerCount.value - OnlineServerCount.value
+}
 
 let OnlineServerCountAnime = useTransition(
     OnlineServerCount,
@@ -22,18 +34,6 @@ let TotalServerCountAnime = useTransition(
     TotalServerCount,
     { duration: 1500 }
 )
-
-function processCoreData(msg: any){
-  TotalServerCount.value = msg.MuServer.Total
-  OnlineServerCount.value = msg.MuServer.Running
-  StoppedServerCount.value = TotalServerCount.value - OnlineServerCount.value
-}
-
-ws.onmessage = (event) => {
-  wsMsg = JSON.parse(event.data)
-  processCoreData(wsMsg)
-  console.log(wsMsg)
-}
 
 // Watching Viewport Width to switch Columns Number
 let cols = ref("")
