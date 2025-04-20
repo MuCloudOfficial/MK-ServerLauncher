@@ -2,4 +2,36 @@ import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
 
-createApp(App).mount('#app')
+import Overview from "./components/Overview.vue";
+import ServerManager from "./components/Server/ServerManager.vue";
+import ServerBuilder from "./components/Server/ServerBuilder.vue";
+import EnvironmentManager from "./components/Environment/EnvironmentManager.vue";
+import EnvironmentBuilder from "./components/Environment/EnvironmentBuilder.vue";
+import AdditionalViews from "./components/Plugins/AdditionalViews.vue";
+import AboutPage from "./components/AboutPage.vue";
+import Settings from "./components/Settings.vue";
+import ServerImporter from "./components/Server/ServerImporter.vue";
+import {createRouter, createWebHistory} from "vue-router";
+import ServerLinker from "./components/Server/ServerLinker.vue";
+
+const routes = [
+    { path: '/', component: Overview },
+    { path: '/servermanager', component: ServerManager },
+    { path: '/server/create', component: ServerBuilder },
+    { path: '/server/import', component: ServerImporter },
+    { path: '/server/link', component: ServerLinker },
+    { path: '/envmanager', component: EnvironmentManager },
+    { path: '/env/create', component: EnvironmentBuilder },
+    { path: '/plugin/:pid', component: AdditionalViews },
+    { path: '/about', component: AboutPage },
+    { path: '/settings', component: Settings },
+]
+
+const router = createRouter({
+    history: createWebHistory(),
+    routes,
+})
+
+createApp(App)
+    .use(router)
+    .mount('#app')

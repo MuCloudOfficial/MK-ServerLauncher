@@ -1,5 +1,6 @@
 package me.mucloud.application.MK.ServerLauncher.internal.manage
 
+import kotlinx.serialization.json.JsonElement
 import java.io.File
 
 object Configuration {
@@ -10,5 +11,9 @@ object Configuration {
     private var LogFolder: File = File("./logs")
 
     private var ConfigurationVersion: Int = 0
+
+    fun serialize(): JsonElement{
+        TODO()
+    }
 
 }

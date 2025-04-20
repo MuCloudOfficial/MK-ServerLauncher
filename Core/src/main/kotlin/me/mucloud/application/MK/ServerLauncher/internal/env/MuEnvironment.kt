@@ -1,7 +1,7 @@
 package me.mucloud.application.MK.ServerLauncher.internal.env
 
 /**
- * A Environment.
+ * An Environment.
  *
  * Only API.
  *

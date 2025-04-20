@@ -4,14 +4,16 @@
 
 <template>
   <el-card>
-    <div class="text-5xl font-bold">MK-ServerLauncher</div>
-    <div class="text-2xl">MultiPlatform&WebServer Hybrid Edition</div>
-    <div class="text-xl my-1">VoidLand V2 DEV.16</div>
+    <div class="text-5xl font-bold underline">MK-ServerLauncher</div>
+    <div class="text-xl -mt-1">MultiPlatform&WebServer Hybrid Edition</div>
+    <div class="text-xl my-2">MuView Ver.VoidLand V2 DEV 1</div>
     <el-divider content-position="left" class="border-2">
       Based Framework & Tech
     </el-divider>
     <div>Backend: Kotlin 2.1.20 & Ktor 3.1.2</div>
     <div>Frontend: Vue & Vite</div>
+    <div>Font Family: Poppins</div>
+    <div>Icons: Feather (built in SVG)</div>
     <el-divider content-position="left" class="border-2">
       Author & Open-Source Repository
     </el-divider>
@@ -42,7 +44,7 @@
     <el-divider content-position="left" class="border-2">
       Other Platform Editions
     </el-divider>
-    About MK-ServerLauncher in other platform or forms, it will be published probably. But currently, MK-ServerLauncher is Only MPE,
+    About MK-ServerLauncher in other platform or forms, it will be published, probably. But currently, MK-ServerLauncher is Only MPE,
     please continue to follow <a class="underline" href="https://mucloudofficial.github.io/MuBlog">MuBlog</a>
     <el-icon size="13">
       <svg class="stroke-2 stroke-gray-500" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

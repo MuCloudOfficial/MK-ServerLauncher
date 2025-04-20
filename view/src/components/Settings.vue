@@ -8,39 +8,6 @@
       <template #header>Common</template>
 
     </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-    <el-card>
-      <template #header>Network</template>
-
-    </el-card>
-
   </div>
 
 </template>

@@ -1,25 +1,61 @@
 <script setup lang="ts">
-import {onMounted, ref, shallowRef} from "vue";
+import {onMounted, onUnmounted, ref, shallowRef} from "vue";
 import {useTransition} from "@vueuse/core";
 import {MuWebSocket} from "./Shared.vue";
 
+let tsk = -1
+let ws: MuWebSocket
 onMounted(() => {
-  const ws = new MuWebSocket("Overview")
-  let wsMsg = ref({})
-  if(ws.getMsg() != undefined){
-    wsMsg.value = ws.getMsg()
-    processCoreData(wsMsg)
+  ws = new MuWebSocket("overview")
+  let wsMsg = ref()
+  if(tsk === -1){
+    tsk = setInterval(() => {
+      if(ws.getMsg() != undefined){
+        wsMsg = ws.getMsg()
+        console.log(wsMsg)
+        processCoreData(wsMsg)
+      }
+    }, 1000)
   }
 })
+
+onUnmounted(() => {
+  console.log("Call Cancelled")
+  if(tsk != -1){
+    clearInterval(tsk)
+    tsk = -1
+  }
+  ws.close()
+})
+
+let CpuUsage = ref(0)
+let MemUsage = ref(0)
 
 let OnlineServerCount = shallowRef(0)
 let StoppedServerCount = shallowRef(0)
 let TotalServerCount = shallowRef(0)
 
+let MuCoreName = ref("")
+let MuCoreVer = ref("")
+let MuPluginCount = ref("")
+let MuTemplatePackCount = ref("")
+
 function processCoreData(msg: any){
-  TotalServerCount.value = msg.MuServer.Total
-  OnlineServerCount.value = msg.MuServer.Running
-  StoppedServerCount.value = TotalServerCount.value - OnlineServerCount.value
+  let systemStatus = msg.systemStatus
+  let serverStatus = msg.serverStatus
+  let appinfo = msg.appInfoStatus
+
+  CpuUsage.value = systemStatus.CpuUsage
+  MemUsage.value = systemStatus.MemUsage
+
+  OnlineServerCount.value = serverStatus.onlineServer
+  StoppedServerCount.value = serverStatus.offlineServer
+  TotalServerCount.value = serverStatus.totalServer
+
+  MuCoreName.value = appinfo.core
+  MuCoreVer.value = appinfo.ver
+  MuPluginCount.value = appinfo.pluginCount
+  MuTemplatePackCount.value = appinfo.templatePackCount
 }
 
 let OnlineServerCountAnime = useTransition(
@@ -52,13 +88,13 @@ addEventListener("resize", () => {
     <el-card class="h-55">
       <template #header>Overview</template>
       <div class="flex flex-row gap-5 justify-around items-center">
-        <el-progress type="dashboard">
+        <el-progress type="dashboard" :percentage="Number.parseFloat(CpuUsage.toFixed(2))">
           <template #default="{ percentage }">
             <span class="block text-xl">{{percentage}}%</span>
             <span class="block text-base">CPU</span>
           </template>
         </el-progress>
-        <el-progress type="dashboard">
+        <el-progress type="dashboard" :percentage="Number.parseFloat(MemUsage.toFixed(2))">
           <template #default="{ percentage }">
             <span class="block text-xl">{{percentage}}%</span>
             <span class="block text-base">Memory</span>
@@ -85,10 +121,10 @@ addEventListener("resize", () => {
     </el-card>
     <el-card class="h-55">
       <template #header>Core Info</template>
-      <div><span class="font-bold">Core:</span> MuCore MPE </div>
-      <div><span class="font-bold">Version:</span> VoidLand V2 DEV 16 </div>
-      <div><span class="font-bold">Plugin Count:</span> 0 </div>
-      <div><span class="font-bold">TemplatePack Count:</span> 2 </div>
+      <div><span class="font-bold">Core:</span> {{ MuCoreName }} </div>
+      <div><span class="font-bold">Version:</span> {{ MuCoreVer }} </div>
+      <div><span class="font-bold">Plugin Count:</span> {{ MuPluginCount }} </div>
+      <div><span class="font-bold">TemplatePack Count:</span> {{ MuTemplatePackCount }} </div>
     </el-card>
   </div>
 </template>

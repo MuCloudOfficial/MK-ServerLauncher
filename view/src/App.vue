@@ -1,25 +1,13 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import Overview from "./components/Overview.vue";
-import ServerManager from "./components/Server/ServerManager.vue";
-import ServerBuilder from "./components/Server/ServerBuilder.vue";
-import EnvironmentManager from "./components/Environment/EnvironmentManager.vue";
-import EnvironmentBuilder from "./components/Environment/EnvironmentBuilder.vue";
-import AdditionalViews from "./components/Plugins/AdditionalViews.vue";
 import AdditionalMenus from "./components/Plugins/AdditionalMenus.vue";
-import AboutPage from "./components/AboutPage.vue";
-import Settings from "./components/Settings.vue";
 
 let isCollapse = ref(true);
-let currentLMISelected = ref("2-1"); // Current Selected Page
-const whenLMISelected = (key: string) => {
-  currentLMISelected.value = key;
-  console.log(key)
-}
 
 const linkToDoc = () => {
   open("https://mucloudofficial.github.io/MuCloudProjectDoc","_blank", undefined)
 }
+
 </script>
 
 <template>
@@ -32,12 +20,12 @@ const linkToDoc = () => {
   </el-header>
   <el-container class="main-view">
     <el-menu
-        :default-active="currentLMISelected"
+        :default-active="'/'"
         class="left-menu"
         :collapse="isCollapse"
-        @select="whenLMISelected"
+        router
     >
-      <el-menu-item index="1">
+      <el-menu-item index="/">
         <el-icon size="32">
           <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -45,7 +33,7 @@ const linkToDoc = () => {
         </el-icon>
         <template #title><span class="mx-4">Overview</span></template>
       </el-menu-item>
-      <el-sub-menu index="2">
+      <el-sub-menu index="/servermanager">
         <template #title>
           <el-icon size="32">
             <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -57,11 +45,12 @@ const linkToDoc = () => {
           </el-icon>
           <span class="mx-4">Server</span>
         </template>
-        <el-menu-item index="2-1">Manage</el-menu-item>
-        <el-menu-item index="2-2">Add & Create</el-menu-item>
-        <el-menu-item index="2-3">Link & Server Group</el-menu-item>
+        <el-menu-item index="/servermanager">Manage</el-menu-item>
+        <el-menu-item index="/server/create">Create</el-menu-item>
+        <el-menu-item index="/server/import">Import</el-menu-item>
+        <el-menu-item index="/server/link">Proxy & Server Group</el-menu-item>
       </el-sub-menu>
-      <el-sub-menu index="3">
+      <el-sub-menu index="/envmanager">
         <template #title>
           <el-icon size="32">
             <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -72,10 +61,10 @@ const linkToDoc = () => {
           </el-icon>
           <span class="mx-4">Environment</span>
         </template>
-        <el-menu-item index="3-1">Manage</el-menu-item>
-        <el-menu-item index="3-2">Create</el-menu-item>
+        <el-menu-item index="/envmanager">Manage</el-menu-item>
+        <el-menu-item index="/env/create">Create</el-menu-item>
       </el-sub-menu>
-      <el-menu-item index="4">
+      <el-menu-item index="/settings">
         <el-icon size="32">
           <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="3"/>
@@ -105,7 +94,7 @@ const linkToDoc = () => {
           </span>
         </template>
       </el-menu-item>
-      <el-menu-item index="6">
+      <el-menu-item index="/about">
         <el-icon size="32">
           <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10"/>
@@ -119,14 +108,7 @@ const linkToDoc = () => {
     </el-menu>
     <el-main>
       <el-scrollbar>
-        <Overview v-show="currentLMISelected === '1'"/>
-        <ServerManager v-show="currentLMISelected ==='2-1'"/>
-        <ServerBuilder v-show="currentLMISelected === '2-2'"/>
-        <EnvironmentManager v-show="currentLMISelected === '3-1'"/>
-        <EnvironmentBuilder v-show="currentLMISelected === '3-2'"/>
-        <AdditionalViews v-show="currentLMISelected === 'custom'"></AdditionalViews>
-        <Settings v-show="currentLMISelected === '4'"/>
-        <AboutPage v-show="currentLMISelected === '6'"/>
+        <RouterView />
       </el-scrollbar>
     </el-main>
   </el-container>
