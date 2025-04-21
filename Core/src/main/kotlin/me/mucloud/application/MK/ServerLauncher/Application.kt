@@ -13,15 +13,14 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-
     SystemMonitor.initMonitor(1)
 
-    initWebSocket()
     initRoute()
+    initWebSocket()
     routing {
         singlePageApplication {
-            useResources = true
-            filesPath = "vue-output"
+            useResources = false
+            filesPath = "view/dist"
             defaultPage = "index.html"
             ignoreFiles {
                 it.endsWith(".txt")

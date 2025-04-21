@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import {MuWebSocket} from "../Shared.vue";
+import { apiClient } from "../Shared.vue";
 
-const ws = new MuWebSocket("servers")
-let wsMsg = ref(ws.getMsg())
 let search = ref("")
+
+let servers = ref()
+
+apiClient.get("/api/v1/servers").then( res =>
+    servers.value = res.data
+)
+
+console.log(servers)
 
 </script>
 
@@ -29,18 +35,20 @@ let search = ref("")
       </el-icon>
       Import
     </el-button>
-    <el-table :data="wsMsg" stripe>
+    <el-table :data="servers" stripe>
       <el-table-column prop="name" label="Name" min-width="100"/>
       <el-table-column prop="serverType" label="Type" min-width="100"/>
       <el-table-column prop="version" label="Version" min-width="80"/>
-      <el-table-column align="right" min-width="100">
+      <el-table-column prop="running" align="right" min-width="100">
         <template #header>
           <el-input v-model="search" size="default" placeholder="Type to search"/>
         </template>
-        <el-button size="small" type="success">Start</el-button>
-        <el-button size="small" type="warning">Stop</el-button>
-        <el-button size="small" type="primary">Edit</el-button>
-        <el-button size="small" type="danger">Delete</el-button>
+        <template #default="scope">
+          <el-button size="small" :disabled="scope.row.running" type="success">Start</el-button>
+          <el-button size="small" :disabled="!scope.row.running" type="warning">Stop</el-button>
+          <el-button size="small" type="primary">Edit</el-button>
+          <el-button size="small" type="danger">Delete</el-button>
+        </template>
       </el-table-column>
     </el-table>
   </el-card>

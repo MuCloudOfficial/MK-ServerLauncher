@@ -21,7 +21,7 @@ const routes = [
     { path: '/server/import', component: ServerImporter },
     { path: '/server/link', component: ServerLinker },
     { path: '/envmanager', component: EnvironmentManager },
-    { path: '/env/create', component: EnvironmentBuilder },
+    { path: '/env/import', component: EnvironmentBuilder },
     { path: '/plugin/:pid', component: AdditionalViews },
     { path: '/about', component: AboutPage },
     { path: '/settings', component: Settings },

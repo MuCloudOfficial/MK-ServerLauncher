@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {reactive, ref} from "vue";
 import type {ComponentSize, FormInstance, FormRules} from "element-plus";
-import {MuWebSocket} from "../Shared.vue";
 
 let step = ref(0)
 
@@ -31,10 +30,6 @@ const AvailableType = [ /* Fetch from MuCore */ //TODO
   }
 ]
 
-const AvaliableEnv = [
-
-]
-
 // Step Template
 interface Step0FormTemplate{
   serverName: string
@@ -48,15 +43,6 @@ interface Step1FormTemplate{
     envPath: string;
   }
   serverFolder: string
-}
-
-interface Step2FormTemplate{
-
-}
-
-interface Step3FormTemplate{
-  adminUser: string
-  userGroup: string
 }
 
 // Step Form Rules
@@ -88,8 +74,17 @@ const Step0FormData = reactive<Step0FormTemplate>({
   serverPort: 25565,
 })
 
+const Step1FormData = reactive<Step1FormTemplate>({
+  serverEnv: {
+    envName: "",
+    envPath: ""
+  },
+  serverFolder: ""
+})
+
 // Steps Form Size
 const Step0FormSize = ref<ComponentSize>('default')
+const Step1FormSize = ref<ComponentSize>('default')
 
 // Steps Form Ref
 const Step0Form = ref<FormInstance>()
@@ -99,8 +94,11 @@ const submitForm = async (step: number, form: FormInstance | undefined) => {
   await form.validate((v, f) => {
     if(v){
       console.log('submit!')
-      sendCreateServerRequest()
-      process()
+      if(sendCreateServerRequest(step)){
+        process()
+      }else{
+
+      }
     }else{
       console.log('error submit!', f)
     }
@@ -119,11 +117,14 @@ const reverse = () => {
   }
 }
 
-const sendCreateServerRequest = () => {
+const sendCreateServerRequest = (step: number): boolean => {
+  let res
+  fetch(`api/v1/server/create/${Step0FormData.serverName}/${step}`, {
+    headers: { "Accept": "application/json" }
 
+  }).then(msg => res = msg.status)
+  return res == 200
 }
-
-const ws = new MuWebSocket(`server/create/${Step0FormData.serverName}`)
 
 </script>
 
@@ -179,8 +180,12 @@ const ws = new MuWebSocket(`server/create/${Step0FormData.serverName}`)
     </el-form>
 <!--    Step 2 Form Area -->
     <el-form
-
-    >
+        v-show="step == 1"
+        ref="Step1Form"
+        :model="Step1FormData"
+        :size="Step1FormSize"
+        label-position="top"
+        status-icon>
 
     </el-form>
   </div>

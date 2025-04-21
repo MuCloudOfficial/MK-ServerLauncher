@@ -1,23 +1,42 @@
 package me.mucloud.application.MK.ServerLauncher.view
 
 import io.ktor.http.*
+import io.ktor.serialization.gson.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.addJsonObject
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.put
+import kotlinx.serialization.json.*
 import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
-import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
-import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
 
-fun Application.initRoute(){
-    routing {
-        post("/api/v1/appinfo"){
-
+fun Application.initRoute() {
+    //TODO("Remember Delete!!! Dev Use!!!)
+    //Allow Any host & method from Cross origin
+    install(CORS){
+        anyHost()
+        anyMethod()
+    }
+    install(ContentNegotiation) {
+      gson {
+          setPrettyPrinting()
+      }
+    }
+    // Validate Requests
+    install(RequestValidation) {
+        validate<JsonElement> { j ->
+            if(j.jsonObject["token"] == null){
+                ValidationResult.Invalid("Not Define Token in Request Body!")
+            }else if(j.jsonObject["token"].toString() != "lovemumu"){
+                ValidationResult.Invalid("Error Token!")
+            }else{
+                ValidationResult.Valid
+            }
         }
-
+    }
+    routing {
         /**
          *
          *  Serialized JSON Message for CreateServer
@@ -34,23 +53,25 @@ fun Application.initRoute(){
             val name = call.parameters["name"]
             val step = call.parameters["step"]
 
-            if(name != null && step != null) {
-                when(step.toInt()) {
+            if (name != null && step != null) {
+                when (step.toInt()) {
                     0 -> {
-                        if(ServerPool.getServer(name) == null){
+                        if (ServerPool.getServer(name) == null) {
                             call.respond(HttpStatusCode.OK)
-                        }else{
+                        } else {
                             call.respond(HttpStatusCode.BadRequest)
                         }
                     }
+
                     1 -> {
 
                     }
+
                     2 -> {
 
                     }
                 }
-            }else{
+            } else {
                 call.respond(HttpStatusCode.BadRequest)
             }
         }

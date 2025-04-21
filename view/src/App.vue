@@ -62,7 +62,7 @@ const linkToDoc = () => {
           <span class="mx-4">Environment</span>
         </template>
         <el-menu-item index="/envmanager">Manage</el-menu-item>
-        <el-menu-item index="/env/create">Create</el-menu-item>
+        <el-menu-item index="/env/import">Import</el-menu-item>
       </el-sub-menu>
       <el-menu-item index="/settings">
         <el-icon size="32">

@@ -26,10 +26,11 @@ abstract class AbstractServer(
     private var version: String,
     private var serverType: String,
     private var env: MuEnvironment,
-): MuServer {
+): MuServer{
 
-    private var running = false
-    private var totalFailCount = 0
+    abstract var running: Boolean
+    abstract val totalFailCount: Int
+    abstract val totalPassCount: Int
 
     abstract override fun start()
     abstract override fun stop()
@@ -37,6 +38,7 @@ abstract class AbstractServer(
     override fun getName(): String = name
     override fun isRunning(): Boolean = running
     override fun totalFailCount(): Int = totalFailCount
+    override fun totalPassCount(): Int = totalPassCount
     override fun changeName(name: String) { this.name = name }
     override fun setDescription(desc: String){ this.desc = desc }
     override fun getFolder(): File = File(location).parentFile
@@ -45,5 +47,6 @@ abstract class AbstractServer(
     override fun getType(): String = serverType
     override fun getEnv(): MuEnvironment = env
     override fun lastLaunchTime(): LocalDateTime = LocalDateTime.now() //todo
+
 
 }

@@ -20,15 +20,24 @@ data class MCJEServer(
     private val mcs_desc: String,
     private val mcs_location: String,
     private val mcs_port: Int = 25565,
-    @Contextual private val mcs_env: JavaEnvironment
-): AbstractServer(mcs_name, mcs_desc, mcs_port, mcs_location, mcs_version, "Minecraft Java Server", mcs_env) {
-
+    @Contextual private val mcs_env: JavaEnvironment,
+    @Contextual override var running: Boolean = false
+): AbstractServer(mcs_name,
+    mcs_desc,
+    mcs_port,
+    mcs_location,
+    mcs_version,
+    "Minecraft Java Server",
+    mcs_env,
+    ) {
+    override val totalFailCount: Int = 0
+    override val totalPassCount: Int = 0
 
     override fun start() {
-        TODO("Not yet implemented")
+        running = true
     }
 
     override fun stop() {
-        TODO("Not yet implemented")
+        running = false
     }
 }

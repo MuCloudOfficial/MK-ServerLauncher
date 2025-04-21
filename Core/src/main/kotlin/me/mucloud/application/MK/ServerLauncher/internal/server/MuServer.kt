@@ -19,6 +19,7 @@ interface MuServer {
     fun stop()
     fun isRunning(): Boolean
     fun totalFailCount(): Int
+    fun totalPassCount(): Int
     fun getName(): String
     fun changeName(name: String)
     fun setDescription(desc: String)
