@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {reactive, ref} from "vue";
 import type {ComponentSize, FormInstance, FormRules} from "element-plus";
+import { apiClient } from "../Shared.vue";
 
 let step = ref(0)
 
@@ -33,7 +34,7 @@ const AvailableType = [ /* Fetch from MuCore */ //TODO
 // Step Template
 interface Step0FormTemplate{
   serverName: string
-  serverType: number
+  serverType: string
   serverPort: number
 }
 
@@ -70,7 +71,7 @@ const Step0FormRules = reactive<FormRules<Step0FormTemplate>>({
 // Steps Form Data
 const Step0FormData = reactive<Step0FormTemplate>({
   serverName: '',
-  serverType: 0,
+  serverType: "mc",
   serverPort: 25565,
 })
 
@@ -92,14 +93,16 @@ const Step0Form = ref<FormInstance>()
 const submitForm = async (step: number, form: FormInstance | undefined) => {
   if(!form) return
   await form.validate((v, f) => {
-    if(v){
-      console.log('submit!')
-      if(sendCreateServerRequest(step)){
-        process()
-      }else{
-
-      }
-    }else{
+    if (v) {
+      sendCreateServerRequest(step).then(res => {
+        if(res){
+          console.log("submit!")
+          process()
+        }else{
+          console.log("Handled Error!")
+        }
+      })
+    } else {
       console.log('error submit!', f)
     }
   })
@@ -117,13 +120,13 @@ const reverse = () => {
   }
 }
 
-const sendCreateServerRequest = (step: number): boolean => {
-  let res
-  fetch(`api/v1/server/create/${Step0FormData.serverName}/${step}`, {
-    headers: { "Accept": "application/json" }
+const sendCreateServerRequest = async (step: number): Promise<boolean> => {
+  try{
+    return (await apiClient.post(`/api/v1/server/create/${Step0FormData.serverName}/${step}`)).status === 200
+  }catch(e){
+    return false
+  }
 
-  }).then(msg => res = msg.status)
-  return res == 200
 }
 
 </script>

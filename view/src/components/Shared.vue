@@ -1,21 +1,23 @@
 <script lang="ts">
 import axios from "axios";
+import { ref } from "vue";
 
 export default {
   name: 'Shared',
 }
 const backend = document.URL.split(new RegExp("/+"))[1]
 export const apiClient = axios.create({
-  baseURL: `${document.URL.split(new RegExp("/+"))[0]}//${backend.split(":")[0]}:20038`,
+  baseURL: `${document.URL.split(new RegExp("/+"))[0]}//${backend.split(":")[0]}:20038`, //TODO: Product版更改
+  allowAbsoluteUrls: true,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Accept': 'application/json',
   }
 });
 export class MuWebSocket {
   private backend = `ws://${backend.split(":")[0]}`  // TODO: 多前端
-  private port = 20038 /*document.URL.split(new RegExp("/+"))[1].split(":")[1]*/
+  private port = 20038 /*document.URL.split(new RegExp("/+"))[1].split(":")[1]*/ //TODO: Product版更改
   private readonly instance: WebSocket;
   private msg: any
   private isConnected = false
@@ -67,4 +69,6 @@ export class MuWebSocket {
     }
   }
 }
+
+export let ENV_LIST = ref()
 </script>

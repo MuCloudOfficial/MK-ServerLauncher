@@ -84,7 +84,7 @@ addEventListener("resize", () => {
 </script>
 
 <template>
-  <div class="grid gap-4" :class="cols">
+  <el-space :size="30" wrap fill fill-ratio="40" class="m-2">
     <el-card class="h-55">
       <template #header>Overview</template>
       <div class="flex flex-row gap-5 justify-around items-center">
@@ -126,7 +126,7 @@ addEventListener("resize", () => {
       <div><span class="font-bold">Plugin Count:</span> {{ MuPluginCount }} </div>
       <div><span class="font-bold">TemplatePack Count:</span> {{ MuTemplatePackCount }} </div>
     </el-card>
-  </div>
+  </el-space>
 </template>
 
 <style scoped>
