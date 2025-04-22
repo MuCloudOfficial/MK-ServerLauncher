@@ -1,18 +1,12 @@
-<script lang="ts">
-export default {
-  name: 'EnvironmentManager'
-}
-
-import {ref} from "vue"
-export let ENV_LIST = ref()
-</script>
-
 <script setup lang="ts">
+import {ref} from "vue"
+import { apiClient } from "../Shared.vue";
+import { ENV_LIST } from "../Shared.vue";
 let search = ref("")
 
-fetch("http://localhost:20038/api/v1/envs", {
+apiClient.get("/api/v1/envs", {
   headers: { "Accept": "application/json" }
-}).then(res => res.json().then(j => ENV_LIST.value = j))
+}).then(res => ENV_LIST.value = res.data)
 
 </script>
 

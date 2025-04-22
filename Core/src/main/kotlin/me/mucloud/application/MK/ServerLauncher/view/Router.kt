@@ -5,10 +5,11 @@ import io.ktor.serialization.gson.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.put
 import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 
@@ -16,25 +17,17 @@ fun Application.initRoute() {
     //TODO("Remember Delete!!! Dev Use!!!)
     //Allow Any host & method from Cross origin
     install(CORS){
-        anyHost()
-        anyMethod()
+        allowHost("127.0.0.1:5173")
+        allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Options)
+        allowSameOrigin = true
+        allowHeaders { true }
     }
     install(ContentNegotiation) {
       gson {
           setPrettyPrinting()
       }
-    }
-    // Validate Requests
-    install(RequestValidation) {
-        validate<JsonElement> { j ->
-            if(j.jsonObject["token"] == null){
-                ValidationResult.Invalid("Not Define Token in Request Body!")
-            }else if(j.jsonObject["token"].toString() != "lovemumu"){
-                ValidationResult.Invalid("Error Token!")
-            }else{
-                ValidationResult.Valid
-            }
-        }
     }
     routing {
         /**

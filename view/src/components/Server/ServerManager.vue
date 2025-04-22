@@ -44,8 +44,8 @@ console.log(servers)
           <el-input v-model="search" size="default" placeholder="Type to search"/>
         </template>
         <template #default="scope">
-          <el-button size="small" :disabled="scope.row.running" type="success">Start</el-button>
-          <el-button size="small" :disabled="!scope.row.running" type="warning">Stop</el-button>
+          <el-button size="small" :disabled="scope.row.running" type="success" v-text="scope.row.running ? 'Running' : 'Start'"/>
+          <el-button size="small" :disabled="!scope.row.running" type="warning" v-text="!scope.row.running ? 'Stopped' : 'Stop'"/>
           <el-button size="small" type="primary">Edit</el-button>
           <el-button size="small" type="danger">Delete</el-button>
         </template>
