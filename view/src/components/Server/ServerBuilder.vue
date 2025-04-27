@@ -1,7 +1,14 @@
 <script setup lang="ts">
+import "element-plus/es/components/notification/style/css";
 import {reactive, ref} from "vue";
-import type {ComponentSize, FormInstance, FormRules} from "element-plus";
+import {
+  type ComponentSize,
+  ElNotification,
+  type FormInstance,
+  type FormRules
+} from "element-plus";
 import { apiClient } from "../Shared.vue";
+import { ENV_LIST } from "../EnvironmentManager.vue";
 
 let step = ref(0)
 
@@ -10,8 +17,8 @@ const steps = reactive([ //Fixed Steps Route
     name: "Basic",
     desc: "Complete Basic Information",
   }, {
-    name: "Storage & Environment",
-    desc: "Define Server Location & Environment",
+    name: "Environment",
+    desc: "Define Server Environment",
   }, {
     name: "Detail",
     desc: "Complete Detail Information",
@@ -31,22 +38,13 @@ const AvailableType = [ /* Fetch from MuCore */ //TODO
   }
 ]
 
-// Step Template
+// Step 0 Template
 interface Step0FormTemplate{
   serverName: string
   serverType: string
   serverPort: number
 }
 
-interface Step1FormTemplate{
-  serverEnv: {
-    envName: string;
-    envPath: string;
-  }
-  serverFolder: string
-}
-
-// Step Form Rules
 const Step0FormRules = reactive<FormRules<Step0FormTemplate>>({
   serverName: [
     { required: true, message: 'Please input Correct name', trigger: 'blur' },
@@ -68,27 +66,32 @@ const Step0FormRules = reactive<FormRules<Step0FormTemplate>>({
   ]
 })
 
-// Steps Form Data
 const Step0FormData = reactive<Step0FormTemplate>({
   serverName: '',
   serverType: "mc",
   serverPort: 25565,
 })
 
+const Step0FormSize = ref<ComponentSize>('default')
+const Step0Form = ref<FormInstance>()
+
+// Step 1 Template
+interface Step1FormTemplate{
+  serverEnv: string
+}
+
 const Step1FormData = reactive<Step1FormTemplate>({
-  serverEnv: {
-    envName: "",
-    envPath: ""
-  },
-  serverFolder: ""
+  serverEnv: ''
 })
 
-// Steps Form Size
-const Step0FormSize = ref<ComponentSize>('default')
-const Step1FormSize = ref<ComponentSize>('default')
+const Step1FormRule = reactive<FormRules<Step1FormTemplate>>({
+  serverEnv: [
+    { required: true, trigger: "change" }
+  ]
+})
 
-// Steps Form Ref
-const Step0Form = ref<FormInstance>()
+const Step1FormSize = ref<ComponentSize>('default')
+const Step1Form = ref<FormInstance>()
 
 const submitForm = async (step: number, form: FormInstance | undefined) => {
   if(!form) return
@@ -121,12 +124,18 @@ const reverse = () => {
 }
 
 const sendCreateServerRequest = async (step: number): Promise<boolean> => {
-  try{
-    return (await apiClient.post(`/api/v1/server/create/${Step0FormData.serverName}/${step}`)).status === 200
-  }catch(e){
-    return false
-  }
-
+  return apiClient.post(`/api/v1/server/create/${Step0FormData.serverName}/${step}`,)
+      .then(r => r.status === 200)
+      .catch(e => {
+        ElNotification({
+          title: 'Create Error',
+          message: e.response.data,
+          type: 'error',
+          duration: 5000,
+          offset: 100,
+        })
+        return false
+      })
 }
 
 </script>
@@ -137,6 +146,7 @@ const sendCreateServerRequest = async (step: number): Promise<boolean> => {
     <el-step v-for="i in steps" :title="i.name" :description="i.desc"/>
   </el-steps>
   <div class="my-10 w-100 mx-auto">
+<!--    Step 1 Form Area-->
     <el-form
         v-show="step == 0"
         ref="Step0Form"
@@ -183,13 +193,48 @@ const sendCreateServerRequest = async (step: number): Promise<boolean> => {
     </el-form>
 <!--    Step 2 Form Area -->
     <el-form
-        v-show="step == 1"
+        v-show="step == 1 && ENV_LIST.length != 0"
         ref="Step1Form"
         :model="Step1FormData"
         :size="Step1FormSize"
         label-position="top"
         status-icon>
+      <el-form-item prop="serverEnv">
+        <template #label><span class="text-base">Environment</span></template>
+        <el-select v-model="Step1FormData.serverEnv">
+          <el-option v-for="i in ENV_LIST"
+                     :key="i.env_name"
+                     :label="`${i.env_name} (${i.env_version})`"
+                     :value="i.env_name"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <div class="w-full flex flex-row justify-center">
+          <el-button type="warning"
+                     @click="reverse">
+            Previous
+          </el-button>
+          <el-button type="primary"
+                     @click="submitForm(1, Step1Form)">
+            Next
+          </el-button>
+        </div>
+      </el-form-item>
+    </el-form>
+    <div v-show="step == 1 && ENV_LIST.length === 0" class="mx-auto my-5">
+      <span class="text-2xl font-bold">You not have any Environment!</span>
+      <div class="my-5 w-full flex flex-row justify-center" v-if="true"><!-- TODO -->
+        <RouterLink to="/envmanager"><span class="text-xl underline">Please import a Environment before.</span></RouterLink>
+      </div>
+    </div>
+<!--    Step 3 Form Area-->
+    <el-form
+        v-show="step == 2"
+    >
+      <el-form-item>
 
+      </el-form-item>
     </el-form>
   </div>
   <div class="w-full my-5 text-center" v-show="step == 0">Already have a Server? Please <RouterLink class="font-bold underline" to="/server/import">Import Server</RouterLink>.</div>

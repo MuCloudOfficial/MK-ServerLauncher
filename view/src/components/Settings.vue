@@ -6,7 +6,6 @@
   <div class="flex flex-col gap-5">
     <el-card>
       <template #header>Common</template>
-
     </el-card>
   </div>
 

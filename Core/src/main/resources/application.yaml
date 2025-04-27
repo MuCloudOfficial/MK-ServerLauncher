@@ -4,4 +4,6 @@ ktor:
       - me.mucloud.application.MK.ServerLauncher.ApplicationKt.module
   deployment:
     port: 20038
+    watch:
+      - classes
   development: true

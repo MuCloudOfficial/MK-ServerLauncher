@@ -8,8 +8,8 @@ import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJESer
 object ServerPool {
 
     private val POOL: MutableList<AbstractServer> = mutableListOf(
-        MCJEServer("MuServer1", "1.16.5", "Paper", "No Desc", "/", 25565, EnvPool.getEnv("zulu11") as JavaEnvironment, running = true),
-        MCJEServer("MuServer2", "1.19.2", "Paper", "No Desc", "/", 25666, EnvPool.getEnv("zulu16") as JavaEnvironment)
+//        MCJEServer("MuServer1", "1.16.5", "Paper", "No Desc", "/", 25565, EnvPool.getEnv("zulu11") as JavaEnvironment, running = true),
+//        MCJEServer("MuServer2", "1.19.2", "Paper", "No Desc", "/", 25666, EnvPool.getEnv("zulu16") as JavaEnvironment)
     )
 
     fun addServer(server: AbstractServer){
@@ -20,16 +20,7 @@ object ServerPool {
         POOL.remove(server)
     }
 
-    fun getServer(name: String): AbstractServer?{
-        POOL.forEach {
-            if (it.getName() == name){
-
-                return it
-            }
-        }
-        return null
-    }
-
+    fun getServer(name: String): AbstractServer? = POOL.find { name == it.getName() }
     fun getServerList(): List<AbstractServer> = POOL
     fun getTotalServer(): Int = POOL.size
     fun getOnlineServerCount(): Int = POOL.filter { it.isRunning() }.size

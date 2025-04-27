@@ -3,14 +3,11 @@ import {ref} from "vue";
 import { apiClient } from "../Shared.vue";
 
 let search = ref("")
+let SERVER_LIST = ref()
 
-let servers = ref()
-
-apiClient.get("/api/v1/servers").then( res =>
-    servers.value = res.data
-)
-
-console.log(servers)
+const getServers = () => { apiClient.get("api/v1/servers").then(res => {
+  SERVER_LIST.value = res.data
+})}
 
 </script>
 
@@ -35,7 +32,7 @@ console.log(servers)
       </el-icon>
       Import
     </el-button>
-    <el-table :data="servers" stripe>
+    <el-table :data="SERVER_LIST" stripe>
       <el-table-column prop="name" label="Name" min-width="100"/>
       <el-table-column prop="serverType" label="Type" min-width="100"/>
       <el-table-column prop="version" label="Version" min-width="80"/>

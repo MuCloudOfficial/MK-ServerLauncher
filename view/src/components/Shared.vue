@@ -1,11 +1,10 @@
 <script lang="ts">
 import axios from "axios";
-import { ref } from "vue";
 
 export default {
   name: 'Shared',
 }
-const backend = document.URL.split(new RegExp("/+"))[1]
+export const backend = document.URL.split(new RegExp("/+"))[1]
 export const apiClient = axios.create({
   baseURL: `${document.URL.split(new RegExp("/+"))[0]}//${backend.split(":")[0]}:20038`, //TODO: Product版更改
   allowAbsoluteUrls: true,
@@ -58,7 +57,7 @@ export class MuWebSocket {
       this.instance.send(JSON.stringify(jsonMsg))
       return this.getMsg()
     }else{
-      console.warn("Warn in send MSG to MuCore, probably MuCore is OFFLINE")
+      console.warn("Error occurred while send MSG to MuCore, probably MuCore OFFLINE")
     }
   }
 
@@ -70,5 +69,4 @@ export class MuWebSocket {
   }
 }
 
-export let ENV_LIST = ref()
 </script>

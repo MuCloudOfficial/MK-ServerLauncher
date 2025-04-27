@@ -5,9 +5,7 @@ import App from './App.vue'
 import Overview from "./components/Overview.vue";
 import ServerManager from "./components/Server/ServerManager.vue";
 import ServerBuilder from "./components/Server/ServerBuilder.vue";
-import EnvironmentManager from "./components/Environment/EnvironmentManager.vue";
-import EnvironmentBuilder from "./components/Environment/EnvironmentBuilder.vue";
-import AdditionalViews from "./components/Plugins/AdditionalViews.vue";
+import EnvironmentManager from "./components/EnvironmentManager.vue";
 import AboutPage from "./components/AboutPage.vue";
 import Settings from "./components/Settings.vue";
 import ServerImporter from "./components/Server/ServerImporter.vue";
@@ -21,8 +19,6 @@ const routes = [
     { path: '/server/import', component: ServerImporter },
     { path: '/server/link', component: ServerLinker },
     { path: '/envmanager', component: EnvironmentManager },
-    { path: '/env/import', component: EnvironmentBuilder },
-    { path: '/plugin/:pid', component: AdditionalViews },
     { path: '/about', component: AboutPage },
     { path: '/settings', component: Settings },
 ]

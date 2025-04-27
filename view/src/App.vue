@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import AdditionalMenus from "./components/Plugins/AdditionalMenus.vue";
 
 let isCollapse = ref(true);
 
@@ -48,22 +47,19 @@ const linkToDoc = () => {
         <el-menu-item index="/servermanager">Manage</el-menu-item>
         <el-menu-item index="/server/create">Create</el-menu-item>
         <el-menu-item index="/server/import">Import</el-menu-item>
-        <el-menu-item index="/server/link">Proxy & Server Group</el-menu-item>
       </el-sub-menu>
-      <el-sub-menu index="/envmanager">
+      <el-menu-item index="/envmanager">
+        <el-icon size="32">
+          <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" x2="12" y1="22.08" y2="12"/>
+          </svg>
+        </el-icon>
         <template #title>
-          <el-icon size="32">
-            <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-              <line x1="12" x2="12" y1="22.08" y2="12"/>
-            </svg>
-          </el-icon>
           <span class="mx-4">Environment</span>
         </template>
-        <el-menu-item index="/envmanager">Manage</el-menu-item>
-        <el-menu-item index="/env/import">Import</el-menu-item>
-      </el-sub-menu>
+      </el-menu-item>
       <el-menu-item index="/settings">
         <el-icon size="32">
           <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -104,7 +100,6 @@ const linkToDoc = () => {
         </el-icon>
         <template #title><span class="mx-4">About</span></template>
       </el-menu-item>
-      <AdditionalMenus></AdditionalMenus>
     </el-menu>
     <el-main>
       <el-scrollbar>

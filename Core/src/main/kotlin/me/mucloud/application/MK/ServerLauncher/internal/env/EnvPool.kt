@@ -2,12 +2,10 @@ package me.mucloud.application.MK.ServerLauncher.internal.env
 
 object EnvPool {
 
-    private val POOL: MutableList<MuEnvironment> = mutableListOf(
-        JavaEnvironment("zulu11", "11.0.16", "/"),
-        JavaEnvironment("zulu16", "16.0.3", "/"),
-    )
+    private val POOL: MutableList<MuEnvironment> = mutableListOf()
 
     fun getEnv(name: String) = POOL.find { it.getEnvName() == name }
+    fun getEnv(name: String, path: String) = POOL.find { it.getEnvName() == name || it.getLocation() == path }
 
     fun deleteEnv(name: String): Boolean{
         getEnv(name).let {
@@ -20,13 +18,17 @@ object EnvPool {
         }
     }
 
-    fun addEnv(name: String): Boolean{
-        getEnv(name).let {
+    fun deleteEnv(index: Int){
+        POOL.removeAt(index)
+    }
+
+    fun addEnv(name: String, path: String): Boolean{
+        getEnv(name, path).let {
             if (it != null) {
-                POOL.add(it)
-                return true
-            }else{
                 return false
+            }else{
+                POOL.add(JavaEnvironment(name, path))
+                return true
             }
         }
     }
