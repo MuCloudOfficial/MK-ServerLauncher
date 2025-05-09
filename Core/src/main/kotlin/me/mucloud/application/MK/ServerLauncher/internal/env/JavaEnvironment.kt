@@ -16,8 +16,7 @@ import java.io.FileReader
 data class JavaEnvironment(
     val name: String,
     val path: String
-): MuEnvironment{
-
+){
     var version: String = "Unknown"
 
     init {
@@ -32,7 +31,7 @@ data class JavaEnvironment(
         }
     }
 
-    override fun getLocation(): String = path
-    override fun getEnvName(): String = name
-    override fun getEnvVersion(): String = version
+    fun getLocation(): String = path
+    fun getEnvName(): String = name
+    fun getEnvVersion(): String = version
 }

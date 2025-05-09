@@ -5,7 +5,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
@@ -31,7 +30,7 @@ object SystemMonitor {
                     MonitorFlow.emit(StatusPacket(
                         SystemStatus(cpuUsage, memoryUsage),
                         ServerStatus(ServerPool.getTotalServer(), ServerPool.getOnlineServerCount(), ServerPool.getOfflineServerCount()),
-                        AppInfoStatus("MuCore MPE Hyper", "LovePoem V1 DEV.1", 0, 2),
+                        AppInfoStatus("MuCore MPE DEV Mini", "LovePoem V1 DEV.1", 0, 2),
                     ))
                 }
             }}.await()

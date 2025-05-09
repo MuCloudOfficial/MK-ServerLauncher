@@ -33,7 +33,9 @@ dependencies {
     implementation("io.ktor:ktor-server-request-validation:3.1.2")
     implementation("io.ktor:ktor-server-cors:3.1.2")
     implementation("io.ktor:ktor-serialization-gson:3.1.2")
+    implementation("org.jsoup:jsoup:1.19.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation("io.ktor:ktor-server-test-host-jvm:3.1.1")
+    testImplementation("io.ktor:ktor-server-test-host-jvm:3.1.2")
 }

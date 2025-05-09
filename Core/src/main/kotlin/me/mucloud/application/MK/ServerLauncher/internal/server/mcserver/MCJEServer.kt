@@ -3,6 +3,8 @@ package me.mucloud.application.MK.ServerLauncher.internal.server.mcserver
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
+import java.io.File
+import java.time.LocalDateTime
 
 /**
  * MC Java Edition Server.
@@ -14,30 +16,39 @@ import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
  */
 @Serializable
 data class MCJEServer(
-    private val mcs_name: String,
-    private val mcs_version: String,
-    private val mcs_type: String,
-    private val mcs_desc: String,
-    private val mcs_location: String,
-    private val mcs_port: Int = 25565,
-    @Contextual private val mcs_env: JavaEnvironment,
-    @Contextual override var running: Boolean = false
-): AbstractServer(mcs_name,
-    mcs_desc,
-    mcs_port,
-    mcs_location,
-    mcs_version,
-    "Minecraft Java Server",
-    mcs_env,
-    ) {
-    override val totalFailCount: Int = 0
-    override val totalPassCount: Int = 0
+    private var name: String,
+    private val version: String,
+    private val type: String,
+    private var desc: String,
+    private val location: String,
+    private var port: Int = 25565,
+    @Contextual private var env: JavaEnvironment,
+){
 
-    override fun start() {
+    @Contextual var running: Boolean = false
+    val totalFailCount: Int = 0
+    val totalPassCount: Int = 0
+
+    fun start() {
         running = true
     }
 
-    override fun stop() {
+    fun stop() {
         running = false
     }
+
+    fun getName(): String = name
+    fun isRunning(): Boolean = running
+    fun totalFailCount(): Int = totalFailCount
+    fun totalPassCount(): Int = totalPassCount
+    fun setName(name: String) { this.name = name }
+    fun setDescription(desc: String){ this.desc = desc }
+    fun getFolder(): File = TODO()
+    fun getPort(): Int = port
+    fun setPort(port: Int) { this.port = port }
+    fun getVersion(): String = version
+    fun getType(): String = type
+    fun getEnv(): JavaEnvironment = env
+    fun setEnv(env: JavaEnvironment) { this.env = env }
+    fun lastLaunchTime(): LocalDateTime = LocalDateTime.now() //todo
 }

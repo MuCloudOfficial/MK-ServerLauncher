@@ -2,7 +2,7 @@ package me.mucloud.application.MK.ServerLauncher.internal.env
 
 object EnvPool {
 
-    private val POOL: MutableList<MuEnvironment> = mutableListOf()
+    private val POOL: MutableList<JavaEnvironment> = mutableListOf()
 
     fun getEnv(name: String) = POOL.find { it.getEnvName() == name }
     fun getEnv(name: String, path: String) = POOL.find { it.getEnvName() == name || it.getLocation() == path }
@@ -33,7 +33,7 @@ object EnvPool {
         }
     }
 
-    fun getEnvList(): List<MuEnvironment>{
+    fun getEnvList(): List<JavaEnvironment>{
         return POOL
     }
 

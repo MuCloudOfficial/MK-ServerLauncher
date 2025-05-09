@@ -32,22 +32,19 @@ const linkToDoc = () => {
         </el-icon>
         <template #title><span class="mx-4">Overview</span></template>
       </el-menu-item>
-      <el-sub-menu index="/servermanager">
+      <el-menu-item index="/servermanager">
+        <el-icon size="32">
+          <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect height="8" rx="2" ry="2" width="20" x="2" y="2"/>
+            <rect height="8" rx="2" ry="2" width="20" x="2" y="14"/>
+            <line x1="6" x2="6.01" y1="6" y2="6"/>
+            <line x1="6" x2="6.01" y1="18" y2="18"/>
+          </svg>
+        </el-icon>
         <template #title>
-          <el-icon size="32">
-            <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <rect height="8" rx="2" ry="2" width="20" x="2" y="2"/>
-              <rect height="8" rx="2" ry="2" width="20" x="2" y="14"/>
-              <line x1="6" x2="6.01" y1="6" y2="6"/>
-              <line x1="6" x2="6.01" y1="18" y2="18"/>
-            </svg>
-          </el-icon>
           <span class="mx-4">Server</span>
         </template>
-        <el-menu-item index="/servermanager">Manage</el-menu-item>
-        <el-menu-item index="/server/create">Create</el-menu-item>
-        <el-menu-item index="/server/import">Import</el-menu-item>
-      </el-sub-menu>
+      </el-menu-item>
       <el-menu-item index="/envmanager">
         <el-icon size="32">
           <svg class="stroke-2 stroke-black" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

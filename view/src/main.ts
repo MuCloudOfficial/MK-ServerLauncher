@@ -4,20 +4,14 @@ import App from './App.vue'
 
 import Overview from "./components/Overview.vue";
 import ServerManager from "./components/Server/ServerManager.vue";
-import ServerBuilder from "./components/Server/ServerBuilder.vue";
 import EnvironmentManager from "./components/EnvironmentManager.vue";
 import AboutPage from "./components/AboutPage.vue";
 import Settings from "./components/Settings.vue";
-import ServerImporter from "./components/Server/ServerImporter.vue";
 import {createRouter, createWebHistory} from "vue-router";
-import ServerLinker from "./components/Server/ServerLinker.vue";
 
 const routes = [
     { path: '/', component: Overview },
     { path: '/servermanager', component: ServerManager },
-    { path: '/server/create', component: ServerBuilder },
-    { path: '/server/import', component: ServerImporter },
-    { path: '/server/link', component: ServerLinker },
     { path: '/envmanager', component: EnvironmentManager },
     { path: '/about', component: AboutPage },
     { path: '/settings', component: Settings },

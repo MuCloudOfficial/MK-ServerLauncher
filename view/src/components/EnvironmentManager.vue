@@ -2,11 +2,11 @@
 export default {
   name: "EnvironmentManager"
 }
-export const ENV_LIST = ref()
+export let ENV_LIST = ref()
 </script>
 
 <script setup lang="ts">
-import {reactive, ref} from "vue"
+import {onMounted, reactive, ref} from "vue"
 import {apiClient} from "./Shared.vue";
 import {
   type ComponentSize,
@@ -14,12 +14,13 @@ import {
   type FormInstance,
   type FormRules
 } from "element-plus";
-let inImport = ref(false)
+let onImport = ref(false)
 
-const getEnvs = () => { apiClient.get("/api/v1/envs").then(res => {
+const getEnvs = () => { apiClient.get("/api/v1/env/list").then(res => {
   ENV_LIST.value = res.data
 })}
-getEnvs()
+
+onMounted(() => getEnvs())
 
 interface EnvFormTemplate{
   envName: string
@@ -65,7 +66,7 @@ const submitForm = async (form: FormInstance | undefined, data: EnvFormTemplate)
       console.log('error submit!', f)
     }
   })
-  inImport.value = false
+  onImport.value = false
 }
 
 const sendCreateServerRequest = async (form: any): Promise<boolean> => {
@@ -122,13 +123,11 @@ const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
         getEnvs()
       })
 }
-
-
 </script>
 
 <template>
   <el-card>
-    <el-button size="default" type="success" @click.capture="inImport = true">
+    <el-button size="default" type="success" @click.capture="onImport = true">
       <el-icon class="mr-2" size="15">
         <svg class="stroke-2 stroke-white" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <line x1="12" x2="12" y1="5" y2="19"/>
@@ -149,7 +148,7 @@ const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
     </el-table>
   </el-card>
   <el-dialog
-    v-model="inImport"
+    v-model="onImport"
     title="Import"
     width="500"
   >
@@ -166,11 +165,11 @@ const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
       </el-form-item>
       <el-form-item prop="envPath">
         <template #label><span class="text-base">Path</span></template>
-        <el-input v-model="EnvFormData.envPath" placeholder="Point to javaw.exe file path"></el-input>
+        <el-input v-model="EnvFormData.envPath" placeholder="Point to Java Installed Folder"></el-input>
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="inImport = false">Cancel</el-button>
+      <el-button @click="onImport = false">Cancel</el-button>
       <el-button type="primary" @click="submitForm(EnvFormRef, EnvFormData)">Confirm</el-button>
     </template>
   </el-dialog>
