@@ -1,5 +1,6 @@
 <script lang="ts">
 import axios from "axios";
+import { ref } from "vue";
 
 export default {
   name: 'Shared',
@@ -68,5 +69,19 @@ export class MuWebSocket {
     }
   }
 }
+
+export let ENV_LIST = ref()
+export let SERVER_LIST = ref()
+
+export const getServers = () => { apiClient.get("api/v1/server/list").then(res => {
+  SERVER_LIST.value = res.data
+})}
+
+export const getEnvs = () => { apiClient.get("/api/v1/env/list").then(res => {
+  ENV_LIST.value = res.data
+})}
+
+getServers()
+getEnvs()
 
 </script>

@@ -2,15 +2,10 @@
 import "element-plus/es/components/notification/style/css";
 import { type ComponentSize, ElNotification, type FormInstance, type FormRules } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
-import { apiClient } from "../Shared.vue";
-import { ENV_LIST } from "../EnvironmentManager.vue";
+import { apiClient, ENV_LIST, SERVER_LIST, getServers,  } from "../Shared.vue";
 
 let search = ref("")
-let SERVER_LIST = ref([])
 
-const getServers = () => { apiClient.get("api/v1/server/list").then(res => {
-  SERVER_LIST.value = res.data
-})}
 onMounted(() => getServers())
 
 const AvailableMCSType = [
@@ -152,9 +147,9 @@ const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
   ],
 })
 
-const ServerFormData = reactive<ServerFormTemplate>({
+let ServerFormData = reactive<ServerFormTemplate>({
   name: '',
-  type: "mc",
+  type: '',
   port: 25565,
   desc: '',
   env: '',
@@ -182,6 +177,13 @@ const submitForm = async (form: FormInstance | undefined, data: any) => {
       sendCreateServerRequest(data).then(res => {
         if(res){
           console.log("submit!")
+          ElNotification({
+            title: 'Create Success',
+            type: 'success',
+            duration: 5000,
+            offset: 100,
+          })
+          onCreate.value = false
         }else{
           console.log("Handled Error!")
         }
@@ -192,8 +194,8 @@ const submitForm = async (form: FormInstance | undefined, data: any) => {
   })
 }
 
-const sendCreateServerRequest = async (step: number, data: any): Promise<boolean> => {
-  return apiClient.post(`/api/v1/server/create/${ServerFormData.name}/${step}`, data)
+const sendCreateServerRequest = async (data: any): Promise<boolean> => {
+  return apiClient.post(`/api/v1/server/create`, data)
       .then(r => r.status === 200)
       .catch(e => {
         ElNotification({
@@ -204,7 +206,32 @@ const sendCreateServerRequest = async (step: number, data: any): Promise<boolean
           offset: 100,
         })
         return false
+      }).finally(() => {
+        getServers()
       })
+}
+
+const cancelCreateServer = () => {
+  onCreate.value = false
+  ServerFormData = reactive<ServerFormTemplate>({
+    name: '',
+    type: '',
+    port: 25565,
+    desc: '',
+    env: '',
+    version: '',
+    online: true,
+    whitelist: false,
+    max_player: 20,
+    view_distance: 10,
+    allow_nether: true,
+    spawn_protect: 10,
+    jvm_flag_template: 'none',
+    jvm_aflags: '',
+    allow_gui: false,
+    minimum_mem: 512,
+    maximum_mem: 512,
+  })
 }
 
 </script>
@@ -232,7 +259,7 @@ const sendCreateServerRequest = async (step: number, data: any): Promise<boolean
     </el-button>
     <el-table :data="SERVER_LIST" stripe>
       <el-table-column prop="name" label="Name" min-width="100"/>
-      <el-table-column prop="serverType" label="Type" min-width="100"/>
+      <el-table-column prop="type" label="Type" min-width="100"/>
       <el-table-column prop="version" label="Version" min-width="80"/>
       <el-table-column prop="running" align="right" min-width="100">
         <template #header>
@@ -241,7 +268,6 @@ const sendCreateServerRequest = async (step: number, data: any): Promise<boolean
         <template #default="scope">
           <el-button size="small" :disabled="scope.row.running" type="success" v-text="scope.row.running ? 'Running' : 'Start'"/>
           <el-button size="small" :disabled="!scope.row.running" type="warning" v-text="!scope.row.running ? 'Stopped' : 'Stop'"/>
-          <el-button size="small" type="primary">Edit</el-button>
           <el-button size="small" type="danger">Delete</el-button>
         </template>
       </el-table-column>
@@ -250,9 +276,10 @@ const sendCreateServerRequest = async (step: number, data: any): Promise<boolean
       v-model="onCreate"
       title="Create Server"
       width="600"
+      align-center
     >
       <el-scrollbar
-        height="600"
+        height="800"
         class="p-4"
       >
         <el-form
@@ -378,6 +405,13 @@ const sendCreateServerRequest = async (step: number, data: any): Promise<boolean
           </el-form-item>
         </el-form>
       </el-scrollbar>
+      <div class="w-full p-4">
+        <div class="float-end">
+          <el-link class="mr-3" type="primary" @click.prevent="cancelCreateServer">Cancel</el-link>
+          <el-button type="primary" @click.prevent="submitForm(ServerFormRef, ServerFormData)">Create</el-button>
+        </div>
+
+      </div>
     </el-dialog>
     <el-dialog
       v-model="onImport"

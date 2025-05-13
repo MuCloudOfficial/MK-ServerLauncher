@@ -1,10 +1,3 @@
-<script lang="ts">
-export default {
-  name: "EnvironmentManager"
-}
-export let ENV_LIST = ref()
-</script>
-
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue"
 import {apiClient} from "./Shared.vue";
@@ -14,11 +7,8 @@ import {
   type FormInstance,
   type FormRules
 } from "element-plus";
+import { ENV_LIST, getEnvs } from "./Shared.vue";
 let onImport = ref(false)
-
-const getEnvs = () => { apiClient.get("/api/v1/env/list").then(res => {
-  ENV_LIST.value = res.data
-})}
 
 onMounted(() => getEnvs())
 
@@ -58,6 +48,7 @@ const submitForm = async (form: FormInstance | undefined, data: EnvFormTemplate)
             duration: 5000,
             offset: 100,
           })
+          onImport.value = false
         }else{
           console.log("Handled Error!")
         }
@@ -66,7 +57,6 @@ const submitForm = async (form: FormInstance | undefined, data: EnvFormTemplate)
       console.log('error submit!', f)
     }
   })
-  onImport.value = false
 }
 
 const sendCreateServerRequest = async (form: any): Promise<boolean> => {

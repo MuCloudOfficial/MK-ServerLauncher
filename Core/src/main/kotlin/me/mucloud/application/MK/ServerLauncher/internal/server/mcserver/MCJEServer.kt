@@ -1,8 +1,12 @@
 package me.mucloud.application.MK.ServerLauncher.internal.server.mcserver
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
+import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
+import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import java.io.File
 import java.time.LocalDateTime
 
@@ -18,16 +22,22 @@ import java.time.LocalDateTime
 data class MCJEServer(
     private var name: String,
     private val version: String,
-    private val type: String,
+    private var type: String,
     private var desc: String,
-    private val location: String,
     private var port: Int = 25565,
     @Contextual private var env: JavaEnvironment,
+    @Contextual private var config: Config
 ){
 
-    @Contextual var running: Boolean = false
-    val totalFailCount: Int = 0
-    val totalPassCount: Int = 0
+    @Contextual private var location: File = File(Configuration.getServerFolder(), name)
+    @Contextual private var running: Boolean = false
+    private val totalFailCount: Int = 0
+    private val totalPassCount: Int = 0
+    @Transient private val consoleFlow: MutableSharedFlow<String> = MutableSharedFlow()
+
+    init{
+        type = ServerPool.getAvailableType()[type]!!
+    }
 
     fun start() {
         running = true
@@ -38,17 +48,46 @@ data class MCJEServer(
     }
 
     fun getName(): String = name
-    fun isRunning(): Boolean = running
-    fun totalFailCount(): Int = totalFailCount
-    fun totalPassCount(): Int = totalPassCount
     fun setName(name: String) { this.name = name }
+
+    fun isRunning(): Boolean = running
+
+    fun totalFailCount(): Int = totalFailCount
+
+    fun totalPassCount(): Int = totalPassCount
+
+    fun getDescription(): String = desc
     fun setDescription(desc: String){ this.desc = desc }
+
     fun getFolder(): File = TODO()
+
     fun getPort(): Int = port
     fun setPort(port: Int) { this.port = port }
+
     fun getVersion(): String = version
+
     fun getType(): String = type
+
     fun getEnv(): JavaEnvironment = env
     fun setEnv(env: JavaEnvironment) { this.env = env }
+
     fun lastLaunchTime(): LocalDateTime = LocalDateTime.now() //todo
+
+    fun getConfig(): Config = config
+
+    @Serializable
+    data class Config(
+        internal var isOnline: Boolean = true,
+        internal var isWhileListed: Boolean = false,
+        internal var maxPlayer: Int = 20,
+        internal var viewDistance: Int = 10,
+        internal var allowNether: Boolean = true,
+        internal var spawnProtectRange: Int = 10,
+        internal var jvmFlagTemplate: String = "none",
+        internal var anotherJVMFlags: String = "",
+        internal var allowGUI: Boolean = false,
+        internal var minimumAllocatedMemory: Int = 512,
+        internal var maximumAllocatedMemory: Int = 512,
+    )
+
 }

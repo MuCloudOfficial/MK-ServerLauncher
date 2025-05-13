@@ -1,19 +1,22 @@
 package me.mucloud.application.MK.ServerLauncher.internal.manage
 
-import kotlinx.serialization.json.JsonElement
 import java.io.File
 
 object Configuration {
 
-    private var ConfigurationFolder: File = File("./conf")
-    private var ConfigurationFile: File = File(ConfigurationFolder, "common.conf")
-    private var PluginPackFolder: File = File("./plugins")
-    private var LogFolder: File = File("./logs")
+    private var ServerFolder: String = ".${File.separator}server"
+    private var ConfigurationFolder: String = ".${File.separator}config"
+    private var ConfigurationFile: String = ".${File.separator}common.conf"
+    private var PluginPackFolder: String = ".${File.separator}plugins"
+    private var LogFolder: String = ".${File.separator}log"
 
     private var ConfigurationVersion: Int = 0
 
-    fun serialize(): JsonElement{
-        TODO()
+    init{
+
     }
+
+    fun getConfigurationFolder() = File(ConfigurationFolder)
+    fun getServerFolder() = File(ServerFolder)
 
 }

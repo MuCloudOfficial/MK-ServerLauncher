@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
 
 fun Application.initRoute() {
     //TODO("Remember Delete!!! Dev Use!!!)
@@ -35,6 +36,9 @@ fun Application.initRoute() {
     routing {
         route("api/v1"){
             route("server"){
+                get("availableType"){
+                    call.respond(ServerPool.getAvailableType())
+                }
                 get("list") {
                     call.respond(ServerPool.getServerList())
                 }
@@ -47,14 +51,47 @@ fun Application.initRoute() {
                  *
                  *  while the status code is:
                  *
-                 *  [HttpStatusCode.OK] - Success in this step.
+                 *  [HttpStatusCode.OK] - Success in Create Server.
                  *  [HttpStatusCode.BadRequest] - Wrong
+                 *
+                 *  @since DEV 6
+                 *  @author Mu_Cloud
                  *
                  */
                 post("create") {
-                    val rawData = call.receive<JsonObject>().also{
-                        if(ServerPool.getServer(it["name"].asString) != null){
+                    call.receive<JsonObject>().also { j ->
+                        if(ServerPool.getServer(j["name"].asString) != null){
                             call.respond(HttpStatusCode.BadRequest)
+                        }else{
+                            try {
+                                ServerPool.addServer(
+                                    MCJEServer(
+                                        j["name"].asString,
+                                        j["version"].asString,
+                                        j["type"].asString,
+                                        j["desc"].asString,
+                                        j["port"].asInt,
+                                        EnvPool.getEnv(j["env"].asString)!!,
+                                        MCJEServer.Config(
+                                            jvmFlagTemplate = j["jvm_flag_template"].asString,
+                                            anotherJVMFlags = j["jvm_aflags"].asString,
+                                            maxPlayer = j["max_player"].asInt,
+                                            minimumAllocatedMemory = j["minimum_mem"].asInt,
+                                            maximumAllocatedMemory = j["maximum_mem"].asInt,
+                                            isOnline = j["online"].asBoolean,
+                                            isWhileListed = j["whitelist"].asBoolean,
+                                            spawnProtectRange = j["spawn_protect"].asInt,
+                                            viewDistance = j["view_distance"].asInt,
+                                            allowGUI = j["allow_gui"].asBoolean,
+                                            allowNether = j["allow_nether"].asBoolean,
+                                        )
+                                    )
+                                )
+                            }catch (e: Exception) {
+                                call.respondText(text = e.toString(), status = HttpStatusCode.BadRequest)
+                                e.printStackTrace()
+                            }
+                            call.respond(HttpStatusCode.OK)
                         }
                     }
                 }
@@ -62,46 +99,34 @@ fun Application.initRoute() {
 
             route("env"){
                 /**
-                 *
                  *  Serialized JSON Message for Environment List.
-                 *
                  *  Send a Json Array contains some Json Objects like following:
                  *
-                 *      [
-                 *          {
-                 *              "env_name": "",
-                 *              "env_version": "",
-                 *              "env_path": ""
-                 *          }
-                 *          ...
-                 *      ]
+                 *     [
+                 *         {
+                 *             "env_name": "",
+                 *             "env_version": "",
+                 *             "env_path": ""
+                 *         }
+                 *         ...
+                 *     ]
                  *
+                 *  @since DEV 6
                  *  @author Mu_Cloud
-                 *  @since DEV 1
                  */
                 get("list") {
                     call.respondText(
                         contentType = ContentType.Application.Json,
                         status = HttpStatusCode.OK,
-                        text = JsonArray().also { r ->
+                        text = JsonArray().apply {
                             EnvPool.getEnvList().forEach{ e ->
-                                r.add(JsonObject().also{ i ->
-                                    i.addProperty("env_name", e.getEnvName())
-                                    i.addProperty("env_version", e.getEnvVersion())
-                                    i.addProperty("env_path", e.getLocation())
+                                add(JsonObject().apply {
+                                    addProperty("env_name", e.getEnvName())
+                                    addProperty("env_version", e.getEnvVersion())
+                                    addProperty("env_path", e.getLocation())
                                 })
                             }
                         }.toString()
-                        /* Kotlinx Serialization JSON Implementation
-                        buildJsonArray {
-                            EnvPool.getEnvList().forEach { i ->
-                                addJsonObject {
-                                    put("env_name", i.getEnvName())
-                                    put("env_version", i.getEnvVersion())
-                                    put("env_path", i.getLocation())
-                                }
-                            }
-                        }.toString()*/
                     )
                 }
 
