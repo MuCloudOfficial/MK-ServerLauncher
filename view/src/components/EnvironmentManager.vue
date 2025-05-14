@@ -13,22 +13,22 @@ let onImport = ref(false)
 onMounted(() => getEnvs())
 
 interface EnvFormTemplate{
-  envName: string
-  envPath: string
+  name: string
+  path: string
 }
 
 const EnvFormRules = reactive<FormRules<EnvFormTemplate>>({
-  envName:[
+  name:[
     {required: true}
   ],
-  envPath:[
+  path:[
     {required: true}
   ]
 })
 
 const EnvFormData = reactive<EnvFormTemplate>({
-  envName: '',
-  envPath: '',
+  name: '',
+  path: '',
 })
 
 const EnvFormSize = ref<ComponentSize>('default')
@@ -127,9 +127,9 @@ const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
       Import
     </el-button>
     <el-table :data="ENV_LIST" stripe>
-      <el-table-column prop="env_name" label="Name" min-width="100"/>
-      <el-table-column prop="env_version" label="Version" min-width="80"/>
-      <el-table-column prop="env_path" label="Path" min-width="100"/>
+      <el-table-column prop="name" label="Name" min-width="100"/>
+      <el-table-column prop="version" label="Version" min-width="80"/>
+      <el-table-column prop="path" label="Path" min-width="100"/>
       <el-table-column label="Actions" min-width="100" align="right">
         <template #default="scope">
           <el-button size="small" type="danger" @click="deleteEnv(scope.$index)">Delete</el-button>
@@ -149,13 +149,13 @@ const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
       :size="EnvFormSize"
       label-position="top"
     >
-      <el-form-item prop="envName">
+      <el-form-item prop="name">
         <template #label><span class="text-base">Name</span></template>
-        <el-input v-model="EnvFormData.envName"/>
+        <el-input v-model="EnvFormData.name"/>
       </el-form-item>
-      <el-form-item prop="envPath">
+      <el-form-item prop="path">
         <template #label><span class="text-base">Path</span></template>
-        <el-input v-model="EnvFormData.envPath" placeholder="Point to Java Installed Folder"></el-input>
+        <el-input v-model="EnvFormData.path" placeholder="Point to Java Installed Folder"></el-input>
       </el-form-item>
     </el-form>
     <template #footer>

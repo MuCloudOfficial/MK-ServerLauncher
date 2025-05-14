@@ -1,6 +1,5 @@
 package me.mucloud.application.MK.ServerLauncher.view
 
-import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
@@ -115,25 +114,13 @@ fun Application.initRoute() {
                  *  @author Mu_Cloud
                  */
                 get("list") {
-                    call.respondText(
-                        contentType = ContentType.Application.Json,
-                        status = HttpStatusCode.OK,
-                        text = JsonArray().apply {
-                            EnvPool.getEnvList().forEach{ e ->
-                                add(JsonObject().apply {
-                                    addProperty("env_name", e.getEnvName())
-                                    addProperty("env_version", e.getEnvVersion())
-                                    addProperty("env_path", e.getLocation())
-                                })
-                            }
-                        }.toString()
-                    )
+                    call.respond(EnvPool.getEnvList())
                 }
 
                 post("create"){
                     val rawData = call.receive<JsonObject>()
-                    val envName = rawData["envName"]?.asString ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing property \"Name\"")
-                    val envPath = rawData["envPath"]?.asString ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing property \"Path\"")
+                    val envName = rawData["name"]?.asString ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing property \"Name\"")
+                    val envPath = rawData["path"]?.asString ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing property \"Path\"")
                     if(EnvPool.addEnv(envName, envPath)) {
                         call.respond(HttpStatusCode.OK)
                     }else{

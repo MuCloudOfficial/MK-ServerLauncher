@@ -2,6 +2,7 @@ package me.mucloud.application.MK.ServerLauncher.internal.env
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import java.io.File
 import java.io.FileReader
@@ -14,11 +15,19 @@ object EnvPool {
     private val envFile = File(Configuration.getConfigurationFolder(), "env.json")
 
     init {
-        if(!envFile.exists()) envFile.createNewFile()
+        if(!envFile.exists()) {
+            envFile.createNewFile()
+            FileWriter(envFile).also { it.write("[]"); it.flush() }
+        }
     }
 
-    fun readConfig(){
-        POOL +Gson().fromJson<List<JavaEnvironment>>(FileReader(envFile.also { if(!it.exists()) return }, StandardCharsets.UTF_8), List::class.java)
+    fun scanEnv(){
+        Gson().fromJson<List<JavaEnvironment>>(
+            FileReader(envFile.also { if(!it.exists()) return }, StandardCharsets.UTF_8),
+            object: TypeToken<List<JavaEnvironment>>(){}.type
+        ).forEach { e ->
+            POOL.add(e)
+        }
     }
 
     fun save(){
@@ -28,8 +37,8 @@ object EnvPool {
         }
     }
 
-    fun getEnv(name: String) = POOL.find { it.getEnvName() == name }
-    fun getEnv(name: String, path: String) = POOL.find { it.getEnvName() == name || it.getLocation() == path }
+    fun getEnv(name: String) = POOL.find { it.name == name }
+    fun getEnv(name: String, path: String) = POOL.find { it.name == name || it.path == path }
 
     fun deleteEnv(name: String): Boolean{
         getEnv(name).let {

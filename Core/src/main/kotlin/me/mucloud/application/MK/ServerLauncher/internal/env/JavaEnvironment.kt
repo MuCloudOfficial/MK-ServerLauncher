@@ -30,8 +30,4 @@ data class JavaEnvironment(
             }
         }
     }
-
-    fun getLocation(): String = path
-    fun getEnvName(): String = name
-    fun getEnvVersion(): String = version
 }
