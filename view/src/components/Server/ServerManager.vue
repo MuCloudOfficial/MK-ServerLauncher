@@ -317,9 +317,9 @@ const cancelCreateServer = () => {
             <template #label><span class="text-base">Environment</span></template>
             <el-select v-model="ServerFormData.env" :disabled="ENV_LIST.length === 0">
               <el-option v-for="i in ENV_LIST"
-                         :key="i.env_name"
-                         :label="`${i.env_name} (${i.env_version})`"
-                         :value="i.env_name"
+                         :key="i.name"
+                         :label="`${i.name} (${i.version})`"
+                         :value="i.name"
               />
             </el-select>
             <span v-show="ENV_LIST.length === 0" class="text-sm text-red-500">You not have any Environment! Import First.</span>

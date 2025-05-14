@@ -98,7 +98,7 @@ const linkToDoc = () => {
         <template #title><span class="mx-4">About</span></template>
       </el-menu-item>
     </el-menu>
-    <el-main>
+    <el-main class="main">
       <el-scrollbar>
         <RouterView />
       </el-scrollbar>
@@ -111,12 +111,13 @@ const linkToDoc = () => {
 .el-menu--collapse{
   box-shadow: var(--el-box-shadow);
   border: 0;
+  flex-shrink: 0 !important;
 }
 .left-menu:not(.el-menu--collapse){
   width: 200px;
-  min-height: 400px;
   box-shadow: var(--el-box-shadow);
   border: 0;
+  flex-shrink: 0 !important;
 }
 .main-nav{
   padding: 0;
