@@ -40,6 +40,10 @@ object SystemMonitor {
     fun getStatus(): SharedFlow<StatusPacket> {
         return MonitorFlow.asSharedFlow()
     }
+
+    fun close(){
+        Tsk.cancel()
+    }
 }
 
 @Serializable

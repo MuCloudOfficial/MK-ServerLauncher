@@ -10,16 +10,26 @@ import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.view.initRoute
 import me.mucloud.application.MK.ServerLauncher.view.initWebSocket
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 fun main(args: Array<String>) {
     EngineMain.main(args)
 }
 
 fun Application.module() {
-    SystemMonitor.initMonitor(1)
-    Configuration.init()
-    EnvPool
-    ServerPool
+    monitor.subscribe(ApplicationStarted){
+        SystemMonitor.initMonitor(1)
+        Configuration.init()
+        EnvPool.scanEnv()
+        ServerPool.scanServer()
+    }
+
+    monitor.subscribe(ApplicationStopped){
+        SystemMonitor.close()
+        EnvPool.save()
+        ServerPool.saveServers()
+    }
 
     initRoute()
     initWebSocket()
@@ -34,3 +44,5 @@ fun Application.module() {
         }
     }
 }
+
+val log: Logger = LoggerFactory.getLogger("MK-ServerLauncher | MuCore")

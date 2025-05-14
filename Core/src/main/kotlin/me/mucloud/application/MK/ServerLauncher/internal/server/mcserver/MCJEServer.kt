@@ -27,8 +27,8 @@ data class MCJEServer(
     private var type: String,
     private var desc: String,
     private var port: Int = 25565,
-    @Contextual private var env: JavaEnvironment,
-    @Contextual private var config: Config
+    private var env: JavaEnvironment,
+    private var config: Config
 ){
 
     @Contextual private var location: File = File(Configuration.getServerFolder(), name)
@@ -42,6 +42,7 @@ data class MCJEServer(
         if(!location.exists()){
             location.mkdirs()
         }
+        saveToFile()
     }
 
     fun start() {
