@@ -4,19 +4,24 @@ import java.io.File
 
 object Configuration {
 
-    private var ServerFolder: String = ".${File.separator}server"
-    private var ConfigurationFolder: String = ".${File.separator}config"
-    private var ConfigurationFile: String = ".${File.separator}common.conf"
-    private var PluginPackFolder: String = ".${File.separator}plugins"
-    private var LogFolder: String = ".${File.separator}log"
+    private var ServerFolder: String = "server"
+    private var ConfigurationFolder: String = "config"
+    private var ConfigurationFile: String = "common.conf"
+    private var PluginPackFolder: String = "plugins"
+    private var LogFolder: String = "log"
 
     private var ConfigurationVersion: Int = 0
 
-    init{
+    fun getConfigurationFolder(): File = File(ConfigurationFolder).absoluteFile
+    fun getServerFolder(): File = File(ServerFolder).absoluteFile
+    fun getConfigFile(): File = File(getConfigurationFolder(), ConfigurationFile).absoluteFile
+    fun getLogFolder(): File = File(LogFolder).absoluteFile
 
+    fun init(){
+        getLogFolder()
+        getConfigurationFolder().mkdirs()
+        getConfigFile().createNewFile()
+        getServerFolder().mkdirs()
     }
-
-    fun getConfigurationFolder() = File(ConfigurationFolder)
-    fun getServerFolder() = File(ServerFolder)
 
 }

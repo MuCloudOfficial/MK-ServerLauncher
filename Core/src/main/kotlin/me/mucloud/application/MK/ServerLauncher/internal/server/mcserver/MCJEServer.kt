@@ -1,6 +1,6 @@
 package me.mucloud.application.MK.ServerLauncher.internal.server.mcserver
 
-import kotlinx.coroutines.flow.Flow
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -8,6 +8,8 @@ import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import java.io.File
+import java.io.FileWriter
+import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 
 /**
@@ -37,6 +39,9 @@ data class MCJEServer(
 
     init{
         type = ServerPool.getAvailableType()[type]!!
+        if(!location.exists()){
+            location.mkdirs()
+        }
     }
 
     fun start() {
@@ -59,7 +64,7 @@ data class MCJEServer(
     fun getDescription(): String = desc
     fun setDescription(desc: String){ this.desc = desc }
 
-    fun getFolder(): File = TODO()
+    fun getFolder(): File = location
 
     fun getPort(): Int = port
     fun setPort(port: Int) { this.port = port }
@@ -74,6 +79,13 @@ data class MCJEServer(
     fun lastLaunchTime(): LocalDateTime = LocalDateTime.now() //todo
 
     fun getConfig(): Config = config
+
+    fun saveToFile(){
+        FileWriter(File(getFolder(), "MK-ServerLauncher.json").also { if(!it.exists()) it.createNewFile() }, StandardCharsets.UTF_8).also {
+            it.write(GsonBuilder().setPrettyPrinting().create().toJson(this))
+            it.flush()
+        }
+    }
 
     @Serializable
     data class Config(

@@ -424,7 +424,3 @@ const cancelCreateServer = () => {
   </el-card>
 
 </template>
-
-<style scoped>
-
-</style>

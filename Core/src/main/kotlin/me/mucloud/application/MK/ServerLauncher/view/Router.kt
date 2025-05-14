@@ -54,7 +54,7 @@ fun Application.initRoute() {
                  *  [HttpStatusCode.OK] - Success in Create Server.
                  *  [HttpStatusCode.BadRequest] - Wrong
                  *
-                 *  @since DEV 6
+                 *  @since DEV.20
                  *  @author Mu_Cloud
                  *
                  */
@@ -111,7 +111,7 @@ fun Application.initRoute() {
                  *         ...
                  *     ]
                  *
-                 *  @since DEV 6
+                 *  @since DEV.20
                  *  @author Mu_Cloud
                  */
                 get("list") {
@@ -141,9 +141,9 @@ fun Application.initRoute() {
                     }
                 }
 
-                post("delete/{index}"){
+                get("delete/{index}"){
                     try{
-                        val index = call.parameters["index"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing property \"Index\"")
+                        val index = call.parameters["index"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing property \"Index\"")
                         if(EnvPool.getEnvList().size > index.toInt()) {
                             EnvPool.deleteEnv(index.toInt())
                             call.respond(HttpStatusCode.OK, "Delete Success.")
