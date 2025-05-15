@@ -1,6 +1,7 @@
 package me.mucloud.application.MK.ServerLauncher.internal.env
 
 import kotlinx.serialization.Serializable
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.JavaVersion
 import java.io.File
 import java.io.FileReader
 
@@ -30,4 +31,6 @@ data class JavaEnvironment(
             }
         }
     }
+
+    fun getCodeVersion(): JavaVersion = JavaVersion.valueOf(version)
 }
