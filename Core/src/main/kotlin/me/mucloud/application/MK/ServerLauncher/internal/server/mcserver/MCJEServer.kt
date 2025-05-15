@@ -17,7 +17,7 @@ import java.time.LocalDateTime
  *
  * MuPack Internal Server Template
  *
- * @since DEV.16
+ * @since DEV.1
  * @author Mu_Cloud
  */
 @Serializable
@@ -42,7 +42,6 @@ data class MCJEServer(
         if(!location.exists()){
             location.mkdirs()
         }
-        saveToFile()
     }
 
     fun start() {

@@ -11,6 +11,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
+import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.delete
+import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.remove
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
 
 fun Application.initRoute() {
@@ -41,6 +43,18 @@ fun Application.initRoute() {
                 get("list") {
                     call.respond(ServerPool.getServerList())
                 }
+                get("delete/{name}"){
+                    (ServerPool.getServer(
+                        call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    ) ?: return@get call.respond(HttpStatusCode.BadRequest)).delete()
+                    call.respond(HttpStatusCode.OK)
+                }
+                get("remove/{name}"){
+                    (ServerPool.getServer(
+                        call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    ) ?: return@get call.respond(HttpStatusCode.BadRequest)).remove()
+                    call.respond(HttpStatusCode.OK)
+                }
 
                 /**
                  *
@@ -53,7 +67,7 @@ fun Application.initRoute() {
                  *  [HttpStatusCode.OK] - Success in Create Server.
                  *  [HttpStatusCode.BadRequest] - Wrong
                  *
-                 *  @since DEV.20
+                 *  @since DEV.1
                  *  @author Mu_Cloud
                  *
                  */
@@ -87,7 +101,7 @@ fun Application.initRoute() {
                                     )
                                 )
                             }catch (e: Exception) {
-                                call.respondText(text = e.toString(), status = HttpStatusCode.BadRequest)
+                                call.respond(HttpStatusCode.BadRequest, e.toString())
                                 e.printStackTrace()
                             }
                             call.respond(HttpStatusCode.OK)
@@ -110,7 +124,7 @@ fun Application.initRoute() {
                  *         ...
                  *     ]
                  *
-                 *  @since DEV.20
+                 *  @since DEV.1
                  *  @author Mu_Cloud
                  */
                 get("list") {
@@ -128,17 +142,11 @@ fun Application.initRoute() {
                     }
                 }
 
-                get("delete/{index}"){
+                get("delete/{name}"){
                     try{
-                        val index = call.parameters["index"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing property \"Index\"")
-                        if(EnvPool.getEnvList().size > index.toInt()) {
-                            EnvPool.deleteEnv(index.toInt())
-                            call.respond(HttpStatusCode.OK, "Delete Success.")
-                        }else{
-                            call.respond(HttpStatusCode.BadRequest, "MuCore received an invalid index.")
-                        }
+                        if (EnvPool.deleteEnv(call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid Environment Name."))) call.respond(HttpStatusCode.OK, "Delete Success.") else call.respond(HttpStatusCode.InternalServerError, "MuCore Not have this Environment, please Re-Get ENVLIST.")
                     }catch(e: NumberFormatException){
-                        call.respond(HttpStatusCode.BadRequest)
+                        call.respond(HttpStatusCode.BadRequest, e.toString())
                     }
                 }
             }
