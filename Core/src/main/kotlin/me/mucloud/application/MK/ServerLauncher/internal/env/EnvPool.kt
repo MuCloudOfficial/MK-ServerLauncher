@@ -40,6 +40,8 @@ object EnvPool {
     fun getEnv(name: String) = POOL.find { it.name == name }
     fun getEnv(name: String, path: String) = POOL.find { it.name == name || it.path == path }
 
+    fun deleteEnv(env: JavaEnvironment){ POOL.remove(env) }
+
     fun deleteEnv(name: String): Boolean{
         getEnv(name).let {
             if (it != null) {
@@ -49,10 +51,6 @@ object EnvPool {
                 return false
             }
         }
-    }
-
-    fun deleteEnv(index: Int){
-        POOL.removeAt(index)
     }
 
     fun addEnv(name: String, path: String): Boolean{

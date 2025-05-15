@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import me.mucloud.application.MK.ServerLauncher.log
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
+import java.io.File
 import java.io.FileReader
 
 object ServerPool {
@@ -17,8 +18,9 @@ object ServerPool {
 //        MCJEServer("TestServer", "1.19.2", "paper", "", 25566, JavaEnvironment("", ""), MCJEServer.Config())
     )
 
-    internal fun addServer(server: MCJEServer){ Pool.add(server) }
-    internal fun delServer(server: MCJEServer){ Pool.remove(server) }
+    internal fun addServer(server: MCJEServer){ Pool.add(server); server.saveToFile() }
+    internal fun MCJEServer.delete(){ getFolder().deleteRecursively(); Pool.remove(this) }
+    internal fun MCJEServer.remove(){ File(getFolder(), "MK-ServerLauncher.json").delete(); Pool.remove(this) }
     internal fun getServer(name: String): MCJEServer? = Pool.find { name == it.getName() }
     internal fun getServerList(): List<MCJEServer> = Pool
     internal fun getTotalServer(): Int = Pool.size

@@ -42,7 +42,6 @@ data class MCJEServer(
         if(!location.exists()){
             location.mkdirs()
         }
-        saveToFile()
     }
 
     fun start() {

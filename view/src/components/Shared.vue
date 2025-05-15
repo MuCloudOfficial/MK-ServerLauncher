@@ -73,7 +73,7 @@ export class MuWebSocket {
 export let ENV_LIST = ref()
 export let SERVER_LIST = ref()
 
-export const getServers = () => { apiClient.get("api/v1/server/list").then(res => {
+export const getServers = () => { apiClient.get("/api/v1/server/list").then(res => {
   SERVER_LIST.value = res.data
 })}
 

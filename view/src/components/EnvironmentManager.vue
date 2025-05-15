@@ -39,7 +39,7 @@ const submitForm = async (form: FormInstance | undefined, data: EnvFormTemplate)
   if(!form) return
   await form.validate((v, f) => {
     if (v) {
-      sendCreateServerRequest(data).then(res => {
+      sendCreateEnvRequest(data).then(res => {
         if(res){
           console.log("submit!")
           ElNotification({
@@ -59,7 +59,7 @@ const submitForm = async (form: FormInstance | undefined, data: EnvFormTemplate)
   })
 }
 
-const sendCreateServerRequest = async (form: any): Promise<boolean> => {
+const sendCreateEnvRequest = async (form: any): Promise<boolean> => {
   return apiClient.post(`/api/v1/env/create`, form)
       .then(r => r.status === 200)
       .catch(e => {
@@ -76,31 +76,18 @@ const sendCreateServerRequest = async (form: any): Promise<boolean> => {
       })
 }
 
-const deleteEnv = async (index: number) => {
-  await sendDeleteServerRequest(index).then(res => {
-    if(res){
-      ElNotification({
-        title: 'Delete Success.',
-        type: 'success',
-        duration: 5000,
-        offset: 100
+const sendDeleteEnvRequest = async (index: number) => {
+  apiClient.get(`api/v1/env/delete/${index}`)
+      .then(r => {
+        if(r.status === 200){
+          ElNotification({
+            title: 'Delete Success.',
+            type: 'success',
+            duration: 5000,
+            offset: 100
+          })
+        }
       })
-      return true
-    }else{
-      ElNotification({
-        title: 'MuCore occurred an error',
-        type: 'error',
-        duration: 5000,
-        offset: 100
-      })
-      return false
-    }
-  })
-}
-
-const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
-  return apiClient.post(`api/v1/env/delete/${index}`)
-      .then(r => r.status === 200)
       .catch(e => {
         ElNotification({
           title: e.response.message,
@@ -109,9 +96,7 @@ const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
           offset: 100
         })
         return false
-      }).finally(() => {
-        getEnvs()
-      })
+      }).finally(() => getEnvs())
 }
 </script>
 
@@ -132,7 +117,7 @@ const sendDeleteServerRequest = async (index: number): Promise<boolean> => {
       <el-table-column prop="path" label="Path" min-width="100"/>
       <el-table-column label="Actions" min-width="100" align="right">
         <template #default="scope">
-          <el-button size="small" type="danger" @click="deleteEnv(scope.$index)">Delete</el-button>
+          <el-button size="small" type="danger" @click="sendDeleteEnvRequest(scope.row.name)">Delete</el-button>
         </template>
       </el-table-column>
     </el-table>

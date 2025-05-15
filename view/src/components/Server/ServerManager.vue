@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import "element-plus/es/components/notification/style/css";
-import { type ComponentSize, ElNotification, type FormInstance, type FormRules } from "element-plus";
-import { onMounted, reactive, ref } from "vue";
+import "element-plus/es/components/message-box/style/css";
+import {
+  type ComponentSize,
+  ElMessageBox,
+  ElNotification,
+  type FormInstance,
+  type FormRules
+} from "element-plus";
+import {h, onMounted, reactive, ref} from "vue";
 import { apiClient, ENV_LIST, SERVER_LIST, getServers,  } from "../Shared.vue";
 
 let search = ref("")
@@ -234,6 +241,68 @@ const cancelCreateServer = () => {
   })
 }
 
+const sendDeleteServerRequest = (target: string) => {
+  ElMessageBox.confirm(
+      "Will Delete this Server Permanently(really permanently), Continue?",
+      "Confirm?",
+      {
+        confirmButtonText: 'Confirm Delete',
+        cancelButtonText: 'I regret',
+        type: "warning"
+      }
+  ).then(() => {
+    apiClient.get(`/api/v1/server/delete/${target}`).then( r => {
+      if(r.status === 200){
+        ElNotification({
+          type: 'success',
+          title: 'Delete completed',
+          duration: 5000,
+          offset: 100
+        })
+      }}
+    ).catch(e =>
+        ElNotification({
+          type: 'error',
+          title: 'Occurred a Exception when Delete Server',
+          message: e.response.data,
+          duration: 5000,
+          offset: 100
+    })).finally(() => getServers())
+  })
+}
+
+const sendRemoveServerRequest = (target: string) => {
+  ElMessageBox.confirm(
+      h('div', null, [
+          h('p', null, 'Will Remove this server, Confirm'),
+          h('p', { class: 'text-green-400' }, 'It can be import when you want to reuse this server'),
+      ]),
+      "Confirm?",
+      {
+        confirmButtonText: 'Confirm Remove',
+        cancelButtonText: 'I regret',
+        type: "warning"
+      }
+  ).then(() => {
+    apiClient.get(`/api/v1/server/remove/${target}`).then( r => {
+      if(r.status === 200){
+        ElNotification({
+          type: 'success',
+          title: 'Remove completed',
+          duration: 5000,
+          offset: 100
+        })
+      }}
+    ).catch(e => ElNotification({
+      type: 'error',
+      title: 'Occurred a Exception when Remove Server',
+      message: e.response.data,
+      duration: 5000,
+      offset: 100
+    })).finally(() => getServers())
+  })
+}
+
 </script>
 
 <template>
@@ -268,7 +337,8 @@ const cancelCreateServer = () => {
         <template #default="scope">
           <el-button size="small" :disabled="scope.row.running" type="success" v-text="scope.row.running ? 'Running' : 'Start'"/>
           <el-button size="small" :disabled="!scope.row.running" type="warning" v-text="!scope.row.running ? 'Stopped' : 'Stop'"/>
-          <el-button size="small" type="danger">Delete</el-button>
+          <el-button size="small" type="danger" @click.prevent="sendDeleteServerRequest(scope.row.name)">Delete</el-button>
+          <el-button size="small" type="warning" @click.prevent="sendRemoveServerRequest(scope.row.name)">Remove</el-button>
         </template>
       </el-table-column>
     </el-table>
