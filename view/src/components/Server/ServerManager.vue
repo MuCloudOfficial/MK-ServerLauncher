@@ -154,7 +154,7 @@ const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
   ],
 })
 
-let ServerFormData = reactive<ServerFormTemplate>({
+const ServerFormData = reactive<ServerFormTemplate>({
   name: '',
   type: '',
   port: 25565,
@@ -177,7 +177,7 @@ let ServerFormData = reactive<ServerFormTemplate>({
 const ServerFormSize = ref<ComponentSize>('default')
 const ServerFormRef = ref<FormInstance>()
 
-const submitForm = async (form: FormInstance | undefined, data: any) => {
+const submitCreateForm = async (form: FormInstance | undefined, data: any) => {
   if(!form) return
   await form.validate((v, f) => {
     if (v) {
@@ -220,25 +220,23 @@ const sendCreateServerRequest = async (data: any): Promise<boolean> => {
 
 const cancelCreateServer = () => {
   onCreate.value = false
-  ServerFormData = reactive<ServerFormTemplate>({
-    name: '',
-    type: '',
-    port: 25565,
-    desc: '',
-    env: '',
-    version: '',
-    online: true,
-    whitelist: false,
-    max_player: 20,
-    view_distance: 10,
-    allow_nether: true,
-    spawn_protect: 10,
-    jvm_flag_template: 'none',
-    jvm_aflags: '',
-    allow_gui: false,
-    minimum_mem: 512,
-    maximum_mem: 512,
-  })
+  ServerFormData.name = ''
+  ServerFormData.type = ''
+  ServerFormData.port = 25565
+  ServerFormData.desc = ''
+  ServerFormData.env = ''
+  ServerFormData.version = ''
+  ServerFormData.online = true
+  ServerFormData.whitelist = false
+  ServerFormData.max_player = 20
+  ServerFormData.view_distance = 10
+  ServerFormData.allow_nether = true
+  ServerFormData.spawn_protect = 10
+  ServerFormData.jvm_flag_template = 'none'
+  ServerFormData.jvm_aflags = ''
+  ServerFormData.allow_gui = false
+  ServerFormData.minimum_mem = 512
+  ServerFormData.maximum_mem = 51
 }
 
 const sendDeleteServerRequest = (target: string) => {
@@ -301,6 +299,10 @@ const sendRemoveServerRequest = (target: string) => {
       offset: 100
     })).finally(() => getServers())
   })
+}
+
+const submitImportForm = () => {
+
 }
 
 </script>
@@ -478,7 +480,7 @@ const sendRemoveServerRequest = (target: string) => {
       <div class="w-full p-4">
         <div class="float-end">
           <el-link class="mr-3" type="primary" @click.prevent="cancelCreateServer">Cancel</el-link>
-          <el-button type="primary" @click.prevent="submitForm(ServerFormRef, ServerFormData)">Create</el-button>
+          <el-button type="primary" @click.prevent="submitCreateForm(ServerFormRef, ServerFormData)">Create</el-button>
         </div>
 
       </div>

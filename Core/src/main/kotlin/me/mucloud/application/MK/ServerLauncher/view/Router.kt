@@ -108,6 +108,25 @@ fun Application.initRoute() {
                         }
                     }
                 }
+
+                /**
+                 *
+                 *  Serialized JSON Message for ImportServer
+                 *
+                 *  Response a [HttpStatusCode]
+                 *
+                 *  while the status code is:
+                 *
+                 *  [HttpStatusCode.OK] - Success in Import Server.
+                 *  [HttpStatusCode.BadRequest] - Wrong
+                 *
+                 *  @since DEV.1
+                 *  @author Mu_Cloud
+                 *
+                 */
+                post("import"){
+
+                }
             }
 
             route("env"){

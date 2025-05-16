@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import 'element-plus/theme-chalk/dark/css-vars.css'
 
 import Overview from "./components/Overview.vue";
 import ServerManager from "./components/Server/ServerManager.vue";

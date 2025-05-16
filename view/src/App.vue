@@ -11,7 +11,7 @@ const linkToDoc = () => {
 
 <template>
 <el-container class="h-lvh">
-  <el-header class="main-nav" height="60px">
+  <el-header class="main-nav" height="64px">
     <el-row class="h-full" align="middle">
       <img class="mr-5 h-16 w-16" src="./assets/icon.png" alt="LOGO" @click.prevent="isCollapse = !isCollapse">
       <p class="text-2xl mx-5">MK-ServerLauncher<sup>MPE</sup></p>
@@ -98,7 +98,7 @@ const linkToDoc = () => {
         <template #title><span class="mx-4">About</span></template>
       </el-menu-item>
     </el-menu>
-    <el-main class="main">
+    <el-main>
       <el-scrollbar>
         <RouterView />
       </el-scrollbar>
