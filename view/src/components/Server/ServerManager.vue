@@ -9,16 +9,16 @@ import {
   type FormRules
 } from "element-plus";
 import {h, onMounted, reactive, ref} from "vue";
-import { apiClient, ENV_LIST, SERVER_LIST, getServers,  } from "../Shared.vue";
+import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "../Shared.vue";
 
 let search = ref("")
 
-onMounted(() => getServers())
+onMounted(() => {
+  getServers()
+  apiClient.get("api/v1/server/availableType").then(res => AvailableMCSType = res.data)
+})
 
-const AvailableMCSType = [
-  {value: "paper", label: "Paper & PaperSpigot", desc: "High Performance Server based on Spigot"},
-  {value: "folia", label: "Folia" , desc: "High Performance Multi-Thread Server based on PaperSpigot"},
-]
+let AvailableMCSType = ref()
 const AvailableMCSVersionLoading = ref(false)
 const AvailableMCSVersion = ref([])
 
@@ -28,14 +28,12 @@ const AvailableJVMFlagsTemplate = [
   {value: 'custom', label: 'Custom', flag: ''},
 ]
 
-const fetchMCSDetail = (value: any) => {
+const fetchMCSVersionList = (api: string) => {
   ServerFormData.version = ''
   AvailableMCSVersionLoading.value = true
-  apiClient.get(`https://api.papermc.io/v2/projects/${value}`).then(res => {
-    if(!value.isEmptyValue){
-      AvailableMCSVersion.value = res.data.versions.reverse()
-      AvailableMCSVersionLoading.value = false
-    }
+  apiClient.get(api).then(res => {
+    AvailableMCSVersion.value = res.data.versions.reverse()
+    AvailableMCSVersionLoading.value = false
   })
 }
 
@@ -60,6 +58,7 @@ interface ServerFormTemplate{
   allow_gui: boolean
   minimum_mem: number
   maximum_mem: number
+  before_works: { key: number, value: string }[]
 }
 
 const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
@@ -172,6 +171,7 @@ const ServerFormData = reactive<ServerFormTemplate>({
   allow_gui: false,
   minimum_mem: 512,
   maximum_mem: 512,
+  before_works: []
 })
 
 const ServerFormSize = ref<ComponentSize>('default')
@@ -237,6 +237,7 @@ const cancelCreateServer = () => {
   ServerFormData.allow_gui = false
   ServerFormData.minimum_mem = 512
   ServerFormData.maximum_mem = 51
+  ServerFormData.before_works = []
 }
 
 const sendDeleteServerRequest = (target: string) => {
@@ -301,10 +302,23 @@ const sendRemoveServerRequest = (target: string) => {
   })
 }
 
+const addBeforeWork = () => {
+  ServerFormData.before_works.push({
+    key: Date.now(),
+    value: ''
+  })
+}
+
+const removeBeforeWork = (i: {key: number, value: string}) => {
+  const index = ServerFormData.before_works.indexOf(i)
+  if(index !== -1){
+    ServerFormData.before_works.splice(index, 1)
+  }
+}
+
 const submitImportForm = () => {
 
 }
-
 </script>
 
 <template>
@@ -330,7 +344,7 @@ const submitImportForm = () => {
     </el-button>
     <el-table :data="SERVER_LIST" stripe>
       <el-table-column prop="name" label="Name" min-width="100"/>
-      <el-table-column prop="type" label="Type" min-width="100"/>
+      <el-table-column prop="type.name" label="Type" min-width="100"/>
       <el-table-column prop="version" label="Version" min-width="80"/>
       <el-table-column prop="running" align="right" min-width="100">
         <template #header>
@@ -398,9 +412,9 @@ const submitImportForm = () => {
           </el-form-item>
           <el-form-item prop="type">
             <template #label><span class="text-base">Minecraft Server Type</span></template>
-            <el-select v-model="ServerFormData.type" @change="fetchMCSDetail">
-              <el-option v-for="a in AvailableMCSType" :label="a.label" :value="a.value">
-                <span class="float-left">{{ a.label }}</span>
+            <el-select v-model="ServerFormData.type">
+              <el-option v-for="a in AvailableMCSType" :label="a.name" :value="a.id" @click.capture="fetchMCSVersionList(a.api)">
+                <span class="float-left">{{ a.name }}</span>
                 <span class="ml-5 float-right text-(--el-text-color-secondary) text-[13px]">{{ a.desc }}</span>
               </el-option>
             </el-select>
@@ -440,6 +454,27 @@ const submitImportForm = () => {
               <span class="text-base mr-5">Show GUI<sup>*</sup></span>
             </el-tooltip>
             <el-switch v-model="ServerFormData.allow_gui"/>
+          </el-form-item>
+          <span class="text-base">Before Works</span>
+          <el-form-item
+            v-for="(v, index) in ServerFormData.before_works"
+            :key="v.key"
+            :label="`Work${index}: `"
+            :prop="`before_works.${index}.value`"
+            :rules="{
+              required: true,
+              message: 'Work dont set empty',
+              trigger: 'blur',
+            }"
+            label-position="left"
+          >
+            <div class="flex flex-row w-full">
+              <el-input v-model="v.value"></el-input>
+              <el-button type="danger" class="mx-2" @click.prevent="removeBeforeWork(v)">Delete</el-button>
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-button class="mt-2" @click.prevent="addBeforeWork">Add Work</el-button>
           </el-form-item>
           <span class="text-lg font-bold mb-5">| Configuration</span>
           <el-form-item>
@@ -482,7 +517,6 @@ const submitImportForm = () => {
           <el-link class="mr-3" type="primary" @click.prevent="cancelCreateServer">Cancel</el-link>
           <el-button type="primary" @click.prevent="submitCreateForm(ServerFormRef, ServerFormData)">Create</el-button>
         </div>
-
       </div>
     </el-dialog>
     <el-dialog
@@ -490,7 +524,9 @@ const submitImportForm = () => {
       title="Import Server"
       width="600"
     >
+      <el-form>
 
+      </el-form>
     </el-dialog>
 
   </el-card>

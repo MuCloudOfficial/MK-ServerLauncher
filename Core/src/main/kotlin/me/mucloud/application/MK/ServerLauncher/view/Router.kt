@@ -81,7 +81,7 @@ fun Application.initRoute() {
                                     MCJEServer(
                                         j["name"].asString,
                                         j["version"].asString,
-                                        j["type"].asString,
+                                        ServerPool.getType(j["type"].asString),
                                         j["desc"].asString,
                                         j["port"].asInt,
                                         EnvPool.getEnv(j["env"].asString)!!,
@@ -97,7 +97,8 @@ fun Application.initRoute() {
                                             viewDistance = j["view_distance"].asInt,
                                             allowGUI = j["allow_gui"].asBoolean,
                                             allowNether = j["allow_nether"].asBoolean,
-                                        )
+                                        ),
+                                        j["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }.toMutableList()
                                     )
                                 )
                             }catch (e: Exception) {

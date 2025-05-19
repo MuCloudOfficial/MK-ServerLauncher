@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --default-font-family: Poppins, sans-serif;
+  --default-font-family: 'DM Mono', 'Poppins', sans-serif;
 }
 
 :root, html, body{
