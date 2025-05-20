@@ -171,7 +171,7 @@ const ServerFormData = reactive<ServerFormTemplate>({
   allow_gui: false,
   minimum_mem: 512,
   maximum_mem: 512,
-  before_works: []
+  before_works: [],
 })
 
 const ServerFormSize = ref<ComponentSize>('default')
@@ -316,9 +316,138 @@ const removeBeforeWork = (i: {key: number, value: string}) => {
   }
 }
 
-const submitImportForm = () => {
-
+interface ServerImportForm{
+  name: string,
+  desc: string,
+  path: string,
+  port: number,
+  env: string,
+  jvm_flag_template: string,
+  jvm_aflags: string,
+  allow_gui: boolean,
+  minimum_mem: number,
+  maximum_mem: number,
+  before_works: { key: number, value: string }[],
 }
+
+const ServerImportFormData = reactive<ServerImportForm>({
+  name: '',
+  port: 25565,
+  desc: '',
+  path: '',
+  env: '',
+  jvm_flag_template: 'none',
+  jvm_aflags: '',
+  allow_gui: false,
+  minimum_mem: 512,
+  maximum_mem: 512,
+  before_works: [],
+})
+
+const ServerImportFormRules = reactive<FormRules<ServerImportForm>>({
+  name: [
+    { required: true, message: "Please input a valid name", trigger: 'blur' }
+  ],
+  path: [
+    { required: true, message: "Please input a valid name", trigger: 'blur' }
+  ],
+  port: [
+    { required: true, message: 'Please input Correct name', trigger: 'blur' }
+  ],
+  env: [
+    { required: true, message: "Please Select a Valid Environment", trigger: "change" }
+  ],
+  jvm_flag_template: [
+    { required: true, message: "Please Select a Valid Flag", trigger: "blur" },
+  ],
+  maximum_mem: [
+    { required: true, message: "Please input a Valid Number", trigger: "blur" },
+    { validator: (rule, value, callback) => {
+        if(!Number.isInteger(value)){
+          callback(new Error('Please input a Number'))
+        }else{
+          if(value < ServerImportFormData.minimum_mem){
+            callback(new Error('Do not set this less than Minimum Value'))
+          }else{
+            callback()
+          }
+        }
+      }, trigger: 'blur'},
+  ],
+  minimum_mem: [
+    { required: true, message: "Please input a Valid Number", trigger: "blur" },
+    { validator: (rule, value, callback) => {
+        if(!Number.isInteger(value)){
+          callback(new Error('Please input a Number'))
+        }else{
+          if(value < 512){
+            callback(new Error('Do not set this under the 512'))
+          }else{
+            callback()
+          }
+        }
+      }, trigger: 'blur'},
+  ],
+})
+
+const ServerImportFormRef = ref<FormInstance>()
+
+const submitImportForm = async (form: FormInstance | undefined, data: any) => {
+  if(!form) return
+  await form.validate((v, f) => {
+    if (v) {
+      sendImportServerRequest(data).then(res => {
+        if(res){
+          console.log("submit!")
+          ElNotification({
+            title: 'Create Success',
+            type: 'success',
+            duration: 5000,
+            offset: 100,
+          })
+          onImport.value = false
+        }else{
+          console.log("Handled Error!")
+        }
+      })
+    } else {
+      console.log('error submit!', f)
+    }
+  })
+}
+
+const sendImportServerRequest = async (data: any): Promise<boolean> => {
+  return apiClient.post(`/api/v1/server/import`, data)
+      .then(r => r.status === 200)
+      .catch(e => {
+        ElNotification({
+          title: 'Import Error',
+          message: e.response.data,
+          type: 'error',
+          duration: 5000,
+          offset: 100,
+        })
+        return false
+      }).finally(() => {
+        getServers()
+      })
+}
+
+const cancelImportServer = () => {
+  onImport.value = false
+  ServerImportFormData.name =  ''
+  ServerImportFormData.port =  25565
+  ServerImportFormData.desc =  ''
+  ServerImportFormData.path =  ''
+  ServerImportFormData.env =  ''
+  ServerImportFormData.jvm_flag_template = 'none'
+  ServerImportFormData.jvm_aflags =  ''
+  ServerImportFormData.allow_gui =  false
+  ServerImportFormData.minimum_mem = 512
+  ServerImportFormData.maximum_mem = 512
+  ServerImportFormData.before_works =  []
+}
+
 </script>
 
 <template>
@@ -358,6 +487,8 @@ const submitImportForm = () => {
         </template>
       </el-table-column>
     </el-table>
+
+    <!--  Server Create Dialog  -->
     <el-dialog
       v-model="onCreate"
       title="Create Server"
@@ -519,14 +650,133 @@ const submitImportForm = () => {
         </div>
       </div>
     </el-dialog>
+
+    <!--  Server Import Dialog  -->
     <el-dialog
       v-model="onImport"
       title="Import Server"
       width="600"
+      align-center
     >
-      <el-form>
-
-      </el-form>
+      <el-scrollbar max-height="800" class="p-4">
+        <el-form
+            ref="ServerImportFormRef"
+            :model="ServerImportFormData"
+            :rules="ServerImportFormRules"
+            :size="'default'"
+            status-icon
+            label-position="top"
+        >
+          <span class="text-lg font-bold">| Base</span>
+          <el-form-item prop="name">
+            <template #label><span class="text-base">Name</span></template>
+            <el-input
+                minlength="5"
+                maxlength="20"
+                show-word-limit
+                v-model="ServerImportFormData.name"
+                placeholder="Length limit in 5~20"/>
+          </el-form-item>
+          <el-form-item prop="path">
+            <template #label><span class="text-base">Path</span></template>
+            <el-input
+                v-model="ServerImportFormData.path"
+                placeholder="Input the server jar file path"/>
+          </el-form-item>
+          <el-form-item prop="port">
+            <template #label><span class="text-base">Port</span></template>
+            <el-input
+                min="1024"
+                max="65534"
+                type="number"
+                v-model="ServerImportFormData.port"
+                placeholder="input a number in 1024~65534"/>
+          </el-form-item>
+          <el-form-item>
+            <template #label><span class="text-base">Description</span></template>
+            <el-input type="textarea" v-model="ServerImportFormData.desc"/>
+          </el-form-item>
+          <el-form-item prop="env">
+            <template #label><span class="text-base">Environment</span></template>
+            <el-select v-model="ServerImportFormData.env" :disabled="ENV_LIST.length === 0">
+              <el-option v-for="i in ENV_LIST"
+                         :key="i.name"
+                         :label="`${i.name} (${i.version})`"
+                         :value="i.name"
+              />
+            </el-select>
+            <span v-show="ENV_LIST.length === 0" class="text-sm text-red-500">You not have any Environment! Import First.</span>
+          </el-form-item>
+          <span class="text-lg font-bold">| Startup</span><br/>
+          <el-space class="w-full mt-3">
+            <el-tooltip placement="right">
+              <template #content><span class="text-green-500">Tip: 1024M = 1G</span></template>
+              <span class="test-base mr-5">Memory<sup>*</sup></span>
+            </el-tooltip>
+            <el-form-item prop="minimum_mem">
+              <template #label><span class="text-base">Minimum</span></template>
+              <el-input-number style="width: 180px;" v-model="ServerImportFormData.minimum_mem">
+                <template #suffix>M</template>
+              </el-input-number>
+            </el-form-item>
+            <span class="text-lg font-bold mx-4">~</span>
+            <el-form-item prop="maximum_mem">
+              <template #label><span class="text-base">Maximum</span></template>
+              <el-input-number style="width: 180px;" v-model="ServerImportFormData.maximum_mem">
+                <template #suffix>M</template>
+              </el-input-number>
+            </el-form-item>
+          </el-space>
+          <el-form-item>
+            <el-tooltip placement="right">
+              <template #content>
+                <span class="text-yellow-400">Warning! GUI Mode is not Necessary. Keep close is Recommended</span>
+              </template>
+              <span class="text-base mr-5">Show GUI<sup>*</sup></span>
+            </el-tooltip>
+            <el-switch v-model="ServerImportFormData.allow_gui"/>
+          </el-form-item>
+          <span class="text-base">Before Works</span>
+          <el-form-item
+              v-for="(v, index) in ServerImportFormData.before_works"
+              :key="v.key"
+              :label="`Work${index}: `"
+              :prop="`before_works.${index}.value`"
+              :rules="{
+              required: true,
+              message: 'Work dont set empty',
+              trigger: 'blur',
+            }"
+              label-position="left"
+          >
+            <div class="flex flex-row w-full">
+              <el-input v-model="v.value"></el-input>
+              <el-button type="danger" class="mx-2" @click.prevent="removeBeforeWork(v)">Delete</el-button>
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-button class="mt-2" @click.prevent="addBeforeWork">Add Work</el-button>
+          </el-form-item>
+          <div class="mb-5">
+            <div class="text-lg font-bold">| Advance Settings</div>
+            <el-text type="danger" tag="b">Do not change if you not clear the usage about this setting.</el-text>
+          </div>
+          <el-form-item prop="jvm_flag_template">
+            <template #label><span class="text-base">JVM Startup Flags</span></template>
+            <el-select v-model="ServerImportFormData.jvm_flag_template" @change="(value: any) => { ServerImportFormData.jvm_aflags = AvailableJVMFlagsTemplate.find((v) => v.value == value)?.flag as string }">
+              <el-option v-for="i in AvailableJVMFlagsTemplate" :value="i.value" :label="i.label"/>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <template #label><span class="text-base">Additional JVM Args</span></template>
+            <el-input :disabled="ServerImportFormData.jvm_flag_template != 'custom'" type="textarea" v-model="ServerImportFormData.jvm_aflags"/>
+          </el-form-item>
+        </el-form>
+      </el-scrollbar>
+      <template #footer>
+        <el-button @click="cancelImportServer">Cancel</el-button>
+        <el-button type="primary" @click="submitImportForm(ServerImportFormRef, ServerImportFormData)">Confirm</el-button>
+      </template>
     </el-dialog>
 
   </el-card>

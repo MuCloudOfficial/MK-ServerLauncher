@@ -1,7 +1,7 @@
 package me.mucloud.application.MK.ServerLauncher.internal.server
 
-import com.google.gson.Gson
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
 import me.mucloud.application.MK.ServerLauncher.log
@@ -11,10 +11,11 @@ import java.io.FileReader
 object ServerPool {
 
     private val AvailableTypePool = mutableListOf(
-        AvailableType("spigot", "Spigot", "Minecraft Dedicated Server", "Unknown"),
+//        AvailableType("spigot", "Spigot", "Minecraft Dedicated Server", "Unknown"),
         AvailableType("paper", "Paper & PaperSpigot", "High Performance Server core based on Spigot", "https://api.papermc.io/v2/projects/paper"),
         AvailableType("leaves", "Leaves", "Fixed some broken Features based on Paper", "https://api.leavesmc.org/v2/projects/leaves")
     )
+    internal val UNKNOWN_SERVERTYPE = AvailableType("unknown", "Unknown", "Unknown Type Server", "")
 
     private val Pool: MutableList<MCJEServer> = mutableListOf()
 
@@ -36,14 +37,14 @@ object ServerPool {
                     log.warn("Skipped")
                 }else{
                     log.info("Introspecting Server Description >> $f")
-                    addServer(Gson().fromJson(FileReader(target).readText(), MCJEServer::class.java))
+                    addServer(Json.decodeFromString<MCJEServer>(FileReader(target).readText()))
                 }
             }
         }
     }
 
     internal fun saveServers(){ Pool.forEach { it.saveToFile() } }
-    internal fun getType(id: String): AvailableType = AvailableTypePool.find { it.id == id }!!
+    internal fun getType(id: String): AvailableType = AvailableTypePool.find { it.id == id } ?: UNKNOWN_SERVERTYPE
 
 }
 

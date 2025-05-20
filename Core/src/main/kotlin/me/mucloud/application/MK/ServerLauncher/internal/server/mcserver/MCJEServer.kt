@@ -2,14 +2,20 @@ package me.mucloud.application.MK.ServerLauncher.internal.server.mcserver
 
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
+import kotlinx.serialization.json.Json
 import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.AvailableType
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer.Config
 import java.io.File
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
@@ -23,7 +29,7 @@ import java.time.LocalDateTime
  * @since DEV.1
  * @author Mu_Cloud
  */
-@Serializable
+@Serializable(MCJEServerSerializer::class)
 data class MCJEServer(
     private var name: String,
     private val version: String,
@@ -32,16 +38,16 @@ data class MCJEServer(
     private var port: Int = 25565,
     private var env: JavaEnvironment,
     private var config: Config,
-    private var beforeWork: MutableList<String> = mutableListOf()
+    private var beforeWork: MutableList<String> = mutableListOf(),
 
 ){
 
-    @Contextual private var location: File = File(Configuration.getServerFolder(), name)
+    private var location: File = File(Configuration.getServerFolder(), name)
     private var running: Boolean = false
     private val totalFailCount: Int = 0
     private val totalPassCount: Int = 0
 
-    @Transient private val ServerConsoleFlow: MutableSharedFlow<String> = MutableSharedFlow()
+    private val ServerConsoleFlow: MutableSharedFlow<String> = MutableSharedFlow()
 
     init{
         if(!location.exists()){
@@ -79,6 +85,13 @@ data class MCJEServer(
     fun setDescription(desc: String){ this.desc = desc }
 
     fun getFolder(): File = location
+    fun setFolder(loc: File){
+        if(loc.exists() && loc.isDirectory){
+            location = loc
+        }else{
+            throw RuntimeException("Server Folder Not Found")
+        }
+    }
 
     fun getPort(): Int = port
     fun setPort(port: Int) { this.port = port }
@@ -93,10 +106,11 @@ data class MCJEServer(
     fun lastLaunchTime(): LocalDateTime = LocalDateTime.now() //todo
 
     fun getConfig(): Config = config
+    fun getBeforeWorks(): List<String> = beforeWork
 
     fun saveToFile(){
         FileWriter(File(getFolder(), "MK-ServerLauncher.json").also { if(!it.exists()) it.createNewFile() }, StandardCharsets.UTF_8).also {
-            it.write(GsonBuilder().setPrettyPrinting().create().toJson(this))
+            it.write(Json{ prettyPrint = true }.encodeToString(serializer(), this))
             it.flush()
         }
     }
@@ -116,4 +130,62 @@ data class MCJEServer(
         internal var maximumAllocatedMemory: Int = 512,
     )
 
+}
+
+object MCJEServerSerializer: KSerializer<MCJEServer>{
+    @OptIn(ExperimentalSerializationApi::class)
+    @Transient override val descriptor: SerialDescriptor = buildClassSerialDescriptor("mupack.server.mcjeserver"){
+        element<String>("name")
+        element<String>("version")
+        element<String>("type")
+        element<String>("desc")
+        element<Int>("port")
+        element("env", serialDescriptor<JavaEnvironment>())
+        element("config", serialDescriptor<Config>())
+        element("before_works", listSerialDescriptor<String>())
+        element<String>("location")
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): MCJEServer = decoder.decodeStructure(descriptor){
+        var name: String? = null
+        var version: String? = null
+        var type: AvailableType? = null
+        var desc: String? = null
+        var port: Int? = null
+        var env: JavaEnvironment? = null
+        var config: Config? = null
+        var beforeWork: MutableList<String>? = null
+        var location: File? = null
+
+        l@ while (true){
+            when(val i = decodeElementIndex(descriptor)){
+                DECODE_DONE -> break@l
+                0 -> { name = decodeStringElement(descriptor, 0) }
+                1 -> { version = decodeStringElement(descriptor, 1) }
+                2 -> { type = ServerPool.getType(decodeStringElement(descriptor, 2)) }
+                3 -> { desc = decodeStringElement(descriptor, 3) }
+                4 -> { port = decodeIntElement(descriptor, 4) }
+                5 -> { env = decodeSerializableElement(descriptor, 5, serializer<JavaEnvironment>()) }
+                6 -> { config = decodeSerializableElement(descriptor, 6, serializer<Config>()) }
+                7 -> { beforeWork = decodeSerializableElement(descriptor, 7, serializer<List<String>>()).toMutableList() }
+                8 -> { location = File(decodeStringElement(descriptor, 8)) }
+                else -> throw SerializationException("Invalid Index $i")
+            }
+        }
+        if(name == null || version == null || type == null || desc == null || port == null || env == null || config == null || beforeWork == null || location == null) throw SerializationException("Invalid Field, please re-check")
+        return@decodeStructure MCJEServer(name, version, type, desc, port, env, config, beforeWork).also { it.setFolder(location) }
+    }
+
+    override fun serialize(encoder: Encoder, value: MCJEServer) = encoder.encodeStructure(descriptor){
+        encodeStringElement(descriptor, 0, value.getName())
+        encodeStringElement(descriptor, 1, value.getVersion())
+        encodeStringElement(descriptor, 2, value.getType().id)
+        encodeStringElement(descriptor, 3, value.getDescription())
+        encodeIntElement(descriptor, 4, value.getPort())
+        encodeSerializableElement(descriptor, 5, serializer<JavaEnvironment>(), value.getEnv())
+        encodeSerializableElement(descriptor, 6, serializer<Config>(), value.getConfig())
+        encodeSerializableElement(descriptor, 7, serializer<List<String>>(), value.getBeforeWorks())
+        encodeStringElement(descriptor, 8, value.getFolder().absolutePath)
+    }
 }

@@ -1,6 +1,7 @@
 package me.mucloud.application.MK.ServerLauncher.view
 
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import io.ktor.server.application.*
@@ -14,6 +15,9 @@ import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.delete
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.remove
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
+import java.io.File
+import java.util.*
+import java.util.jar.JarFile
 
 fun Application.initRoute() {
     //TODO("Remember Delete!!! Dev Use!!!)
@@ -126,7 +130,71 @@ fun Application.initRoute() {
                  *
                  */
                 post("import"){
+                    call.receive<JsonObject>().also { r ->
+                        try{
+                            val target = r["name"].asString
+                            val targetPath = r["path"].asString
 
+                            var type = "Unknown"
+                            var version = "Unknown"
+                            if(ServerPool.getServer(target) != null || !File(targetPath).exists()){
+                                call.respond(HttpStatusCode.BadRequest)
+                            }else{
+                                val targetJar = JarFile(File(targetPath))
+                                type = targetJar.manifest.mainAttributes["Main-Class"].toString().let {
+                                    if(it.contains("papermc")){
+                                        "paper"
+                                    }else if(it.contains("leavesmc")){
+                                        "leaves"
+                                    }else{
+                                        "Unknown"
+                                    }
+                                }
+                                var versionFile = targetJar.getJarEntry("version.json")
+                                if(versionFile != null){
+                                    JsonParser.parseReader(targetJar.getInputStream(versionFile).bufferedReader()).asJsonObject.also { version = it["id"].asString }
+                                }else{
+                                    versionFile = targetJar.getJarEntry("patch.properties")
+                                    if(versionFile != null){
+                                        Properties().also{
+                                            it.load(targetJar.getInputStream(versionFile))
+                                            version = it.getProperty("version")
+                                        }
+                                    }
+                                }
+                            }
+
+                            val targetFolder = File(targetPath).parentFile
+                            val targetConf = File(targetFolder, "server.properties")
+                            val config = MCJEServer.Config()
+                            if(targetConf.exists()){
+                                Properties().also {
+                                    it.load(targetConf.reader())
+                                    config.allowNether = it.getProperty("allow-nether").toBoolean()
+                                    config.isWhileListed = it.getProperty("white-list").toBoolean()
+                                    config.isOnline = it.getProperty("online-mode").toBoolean()
+                                    config.maxPlayer = it.getProperty("max-players").toInt()
+                                    config.viewDistance = it.getProperty("view-distance").toInt()
+                                    config.spawnProtectRange = it.getProperty("spawn-protection").toInt()
+                                }
+                            }
+                            ServerPool.addServer(MCJEServer(
+                                target, version, ServerPool.getType(type),
+                                r["desc"].asString,
+                                r["port"].asInt,
+                                EnvPool.getEnv(r["env"].asString)!!,
+                                config,
+                                r["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }.toMutableList()
+                            ).also {
+                                it.setFolder(targetFolder)
+                                it.saveToFile()
+                            })
+                            call.respond(HttpStatusCode.OK)
+                        }catch (e: Exception){
+                            call.respond(HttpStatusCode.BadRequest, e.toString())
+                            e.printStackTrace()
+                        }
+                    }
                 }
             }
 
