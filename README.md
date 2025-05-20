@@ -5,8 +5,7 @@
 <img alt="Static Badge" src="https://img.shields.io/badge/Vue-3.5.13-gray?style=flat&logo=vue.js&logoColor=white&labelColor=darkgreen">
 <img alt="Static Badge" src="https://img.shields.io/badge/TailwindCSS-4.1.3-gray?style=flat&logo=tailwindcss&logoColor=white&labelColor=blue">
 <img alt="Static Badge" src="https://img.shields.io/badge/ElementPlus-2.9.10-gray?style=flat&logoColor=white&labelColor=blue">
-</div>
-
+</div><br/>
 
 <p align="center">服务器管理 WEB 应用</p>
 
