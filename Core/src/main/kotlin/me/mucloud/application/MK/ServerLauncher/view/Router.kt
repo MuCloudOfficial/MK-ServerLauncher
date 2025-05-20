@@ -2,14 +2,19 @@ package me.mucloud.application.MK.ServerLauncher.view
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import io.ktor.http.*
-import io.ktor.serialization.gson.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.gson.gson
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.delete

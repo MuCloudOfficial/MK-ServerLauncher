@@ -4,6 +4,7 @@ import {useTransition} from "@vueuse/core";
 import {MuWebSocket} from "./Shared.vue";
 
 let tsk = -1
+let onLoading = ref(true)
 let ws: MuWebSocket
 onMounted(() => {
   ws = new MuWebSocket("overview")
@@ -56,6 +57,7 @@ function processCoreData(msg: any){
   MuCoreVer.value = appinfo.ver
   MuPluginCount.value = appinfo.pluginCount
   MuTemplatePackCount.value = appinfo.templatePackCount
+  onLoading.value = false
 }
 
 let OnlineServerCountAnime = useTransition(
@@ -119,13 +121,22 @@ addEventListener("resize", () => {
         </div>
       </div>
     </el-card>
-    <el-card class="h-55">
+    <el-card class="h-50">
       <template #header>Core Info</template>
-      <div><span class="font-bold">Core:</span> {{ MuCoreName }} </div>
-      <div><span class="font-bold">Version:</span> {{ MuCoreVer }} </div>
-      <div><span class="font-bold">Plugin Count:</span> {{ MuPluginCount }} </div>
-      <div><span class="font-bold">TemplatePack Count:</span> {{ MuTemplatePackCount }} </div>
+      <el-skeleton :loading="onLoading" animated>
+        <template #template>
+          <div class="flex flex-row items-center"><span class="font-bold">Core:</span> <el-skeleton-item variant="text" class="ml-2" style="width: 30%"/></div>
+          <div class="flex flex-row items-center"><span class="font-bold">Version:</span> <el-skeleton-item variant="text" class="ml-2" style="width: 30%"/></div>
+          <div class="flex flex-row items-center"><span class="font-bold">Plugin Count:</span> <el-skeleton-item variant="text" class="ml-2" style="width: 30%"/></div>
+          <div class="flex flex-row items-center"><span class="font-bold">TemplatePack Count:</span> <el-skeleton-item variant="text" class="ml-2" style="width: 30%"/></div>
+        </template>
+        <div><span class="font-bold">Core:</span> {{ MuCoreName }} </div>
+        <div><span class="font-bold">Version:</span> {{ MuCoreVer }} </div>
+        <div><span class="font-bold">Plugin Count:</span> {{ MuPluginCount }} </div>
+        <div><span class="font-bold">TemplatePack Count:</span> {{ MuTemplatePackCount }} </div>
+      </el-skeleton>
     </el-card>
+
   </el-space>
 </template>
 

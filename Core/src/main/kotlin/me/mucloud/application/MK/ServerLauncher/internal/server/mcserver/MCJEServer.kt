@@ -1,16 +1,23 @@
 package me.mucloud.application.MK.ServerLauncher.internal.server.mcserver
 
-import com.google.gson.GsonBuilder
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.descriptors.listSerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.DECODE_DONE
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.AvailableType
@@ -47,12 +54,16 @@ data class MCJEServer(
     private val totalFailCount: Int = 0
     private val totalPassCount: Int = 0
 
-    private val ServerConsoleFlow: MutableSharedFlow<String> = MutableSharedFlow()
+    private val serverConsoleFlow: MutableSharedFlow<String> = MutableSharedFlow()
 
     init{
         if(!location.exists()){
             location.mkdirs()
         }
+    }
+
+    fun deploy(){
+
     }
 
     fun regBeforeWork(work: String){
@@ -62,7 +73,7 @@ data class MCJEServer(
     fun start() {
         beforeWork.forEach { be ->
             Runtime.getRuntime().exec(be).errorStream.bufferedReader().forEachLine { l ->
-                runBlocking { ServerConsoleFlow.emit(l) }
+                runBlocking { serverConsoleFlow.emit(l) }
             }
         }
         running = true
@@ -110,7 +121,7 @@ data class MCJEServer(
 
     fun saveToFile(){
         FileWriter(File(getFolder(), "MK-ServerLauncher.json").also { if(!it.exists()) it.createNewFile() }, StandardCharsets.UTF_8).also {
-            it.write(Json{ prettyPrint = true }.encodeToString(serializer(), this))
+            it.write(Json{ prettyPrint = true; encodeDefaults = true }.encodeToString(this))
             it.flush()
         }
     }
@@ -132,7 +143,7 @@ data class MCJEServer(
 
 }
 
-object MCJEServerSerializer: KSerializer<MCJEServer>{
+object MCJEServerSerializer: KSerializer<MCJEServer> {
     @OptIn(ExperimentalSerializationApi::class)
     @Transient override val descriptor: SerialDescriptor = buildClassSerialDescriptor("mupack.server.mcjeserver"){
         element<String>("name")
@@ -140,8 +151,8 @@ object MCJEServerSerializer: KSerializer<MCJEServer>{
         element<String>("type")
         element<String>("desc")
         element<Int>("port")
-        element("env", serialDescriptor<JavaEnvironment>())
-        element("config", serialDescriptor<Config>())
+        element<JavaEnvironment>("env")
+        element<Config>("config")
         element("before_works", listSerialDescriptor<String>())
         element<String>("location")
     }
@@ -186,6 +197,6 @@ object MCJEServerSerializer: KSerializer<MCJEServer>{
         encodeSerializableElement(descriptor, 5, serializer<JavaEnvironment>(), value.getEnv())
         encodeSerializableElement(descriptor, 6, serializer<Config>(), value.getConfig())
         encodeSerializableElement(descriptor, 7, serializer<List<String>>(), value.getBeforeWorks())
-        encodeStringElement(descriptor, 8, value.getFolder().absolutePath)
+        encodeStringElement(descriptor, 8, value.getFolder().absolutePath.toString())
     }
 }
