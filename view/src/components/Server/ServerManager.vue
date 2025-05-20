@@ -8,10 +8,8 @@ import {
   type FormInstance,
   type FormRules,
 } from "element-plus";
-import { computed, h, onMounted, reactive, ref, } from "vue";
+import { h, onMounted, reactive, ref, } from "vue";
 import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "../Shared.vue";
-
-let search = ref('')
 
 onMounted(() => {
   getServers()
@@ -83,7 +81,7 @@ const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
   ],
   max_player: [
     { required: true, message: "Please Select a Valid MC Server Max Player", trigger: "blur" },
-    { validator: (rule, value, callback) => {
+    { validator: (_, value, callback) => {
         if(!Number.isInteger(value)){
           callback(new Error('Please input a Number'))
         }else{
@@ -97,7 +95,7 @@ const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
   ],
   view_distance: [
     { required: true, message: "Please Select a Valid MC Server View Distance", trigger: "blur" },
-    { validator: (rule, value, callback) => {
+    { validator: (_, value, callback) => {
         if(!Number.isInteger(value)){
           callback(new Error('Please input a Number'))
         }else{
@@ -111,7 +109,7 @@ const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
   ],
   spawn_protect: [
     { required: true, message: "Please Select a Valid MC Server Spawn Protect Range", trigger: "blur" },
-    { validator: (rule, value, callback) => {
+    { validator: (_, value, callback) => {
         if(!Number.isInteger(value)){
           callback(new Error('Please input a Number'))
         }else{
@@ -125,7 +123,7 @@ const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
   ],
   maximum_mem: [
     { required: true, message: "Please input a Valid Number", trigger: "blur" },
-    { validator: (rule, value, callback) => {
+    { validator: (_, value, callback) => {
         if(!Number.isInteger(value)){
           callback(new Error('Please input a Number'))
         }else{
@@ -139,7 +137,7 @@ const ServerFormRules = reactive<FormRules<ServerFormTemplate>>({
   ],
   minimum_mem: [
     { required: true, message: "Please input a Valid Number", trigger: "blur" },
-    { validator: (rule, value, callback) => {
+    { validator: (_, value, callback) => {
         if(!Number.isInteger(value)){
           callback(new Error('Please input a Number'))
         }else{
@@ -362,7 +360,7 @@ const ServerImportFormRules = reactive<FormRules<ServerImportForm>>({
   ],
   maximum_mem: [
     { required: true, message: "Please input a Valid Number", trigger: "blur" },
-    { validator: (rule, value, callback) => {
+    { validator: (_, value, callback) => {
         if(!Number.isInteger(value)){
           callback(new Error('Please input a Number'))
         }else{
@@ -376,7 +374,7 @@ const ServerImportFormRules = reactive<FormRules<ServerImportForm>>({
   ],
   minimum_mem: [
     { required: true, message: "Please input a Valid Number", trigger: "blur" },
-    { validator: (rule, value, callback) => {
+    { validator: (_, value, callback) => {
         if(!Number.isInteger(value)){
           callback(new Error('Please input a Number'))
         }else{
@@ -749,11 +747,7 @@ const cancelImportServer = () => {
               :key="v.key"
               :label="`Work${index}: `"
               :prop="`before_works.${index}.value`"
-              :rules="{
-              required: true,
-              message: 'Work dont set empty',
-              trigger: 'blur',
-            }"
+              :rules="{ required: true, message: 'Work dont set empty', trigger: 'blur', }"
               label-position="left"
           >
             <div class="flex flex-row w-full">
@@ -785,7 +779,5 @@ const cancelImportServer = () => {
         <el-button type="primary" @click="submitImportForm(ServerImportFormRef, ServerImportFormData)">Confirm</el-button>
       </template>
     </el-dialog>
-
   </el-card>
-
 </template>

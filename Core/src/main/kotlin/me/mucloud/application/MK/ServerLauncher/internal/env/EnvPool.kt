@@ -21,7 +21,7 @@ object EnvPool {
         }
     }
 
-    fun scanEnv(){
+    internal fun scanEnv(){
         Gson().fromJson<List<JavaEnvironment>>(
             FileReader(envFile.also { if(!it.exists()) return }, StandardCharsets.UTF_8),
             object: TypeToken<List<JavaEnvironment>>(){}.type
@@ -30,19 +30,19 @@ object EnvPool {
         }
     }
 
-    fun save(){
+    internal fun save(){
         FileWriter(envFile.also { if(!it.exists()) it.createNewFile() }, StandardCharsets.UTF_8).also {
             it.write(GsonBuilder().setPrettyPrinting().create().toJson(POOL))
             it.flush()
         }
     }
 
-    fun getEnv(name: String) = POOL.find { it.name == name }
-    fun getEnv(name: String, path: String) = POOL.find { it.name == name || it.path == path }
+    internal fun getEnv(name: String) = POOL.find { it.name == name }
+    internal fun getEnv(name: String, path: String) = POOL.find { it.name == name || it.path == path }
 
-    fun deleteEnv(env: JavaEnvironment){ POOL.remove(env) }
+    internal fun deleteEnv(env: JavaEnvironment){ POOL.remove(env) }
 
-    fun deleteEnv(name: String): Boolean{
+    internal fun deleteEnv(name: String): Boolean{
         getEnv(name).let {
             if (it != null) {
                 POOL.remove(it)
@@ -53,7 +53,7 @@ object EnvPool {
         }
     }
 
-    fun addEnv(name: String, path: String): Boolean{
+    internal fun addEnv(name: String, path: String): Boolean{
         getEnv(name, path).let {
             if (it != null) {
                 return false
@@ -64,7 +64,7 @@ object EnvPool {
         }
     }
 
-    fun getEnvList(): List<JavaEnvironment>{
+    internal fun getEnvList(): List<JavaEnvironment>{
         return POOL
     }
 
