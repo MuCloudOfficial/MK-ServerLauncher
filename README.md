@@ -1,5 +1,5 @@
-<p style="font-size: 24px" align="center">系列 III · 第二幕</p>
-<p style="font-size: 32px; font-weight: bold" align="center">WIP - MK-ServerLauncher</p>
+<h3 style="font-size: 24px" align="center">系列 III · 第二幕</h3>
+<h3 style="font-size: 32px; font-weight: bold" align="center">WIP - MK-ServerLauncher</h2>
 
 <div align="center">
 <img alt="Static Badge" src="https://img.shields.io/badge/Vue-3.5.13-gray?style=flat&logo=vue.js&logoColor=white&labelColor=darkgreen">
