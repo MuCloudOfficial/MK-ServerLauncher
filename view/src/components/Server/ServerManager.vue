@@ -6,12 +6,12 @@ import {
   ElMessageBox,
   ElNotification,
   type FormInstance,
-  type FormRules
+  type FormRules,
 } from "element-plus";
-import {h, onMounted, reactive, ref} from "vue";
+import { computed, h, onMounted, reactive, ref, } from "vue";
 import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "../Shared.vue";
 
-let search = ref("")
+let search = ref('')
 
 onMounted(() => {
   getServers()
@@ -472,19 +472,26 @@ const cancelImportServer = () => {
       Import
     </el-button>
     <el-table :data="SERVER_LIST" stripe>
-      <el-table-column prop="name" label="Name" min-width="100"/>
+      <el-table-column prop="name" label="Name" min-width="80"/>
       <el-table-column prop="type.name" label="Type" min-width="100"/>
-      <el-table-column prop="version" label="Version" min-width="80"/>
-      <el-table-column prop="running" align="right" min-width="100">
+      <el-table-column prop="version" label="Version" min-width="60"/>
+      <el-table-column prop="running" label="Actions" align="right" min-width="150">
         <template #header>
-          <el-input v-model="search" size="default" placeholder="Type to search"/>
+<!--          <el-input v-model="search" size="default" placeholder="Type to search"/>-->
+
         </template>
         <template #default="scope">
-          <el-button size="small" :disabled="scope.row.running" type="success" v-text="scope.row.running ? 'Running' : 'Start'"/>
-          <el-button size="small" :disabled="!scope.row.running" type="warning" v-text="!scope.row.running ? 'Stopped' : 'Stop'"/>
-          <el-button size="small" type="danger" @click.prevent="sendDeleteServerRequest(scope.row.name)">Delete</el-button>
-          <el-button size="small" type="warning" @click.prevent="sendRemoveServerRequest(scope.row.name)">Remove</el-button>
-        </template>
+          <el-button size="small" :type="scope.row.running ? 'warning' : 'success'" v-text="scope.row.running ? 'Stop' : 'Start'"/>
+          <el-popover trigger="click" width="30">
+            <template #reference>
+              <el-button size="small" type="danger">Delete</el-button>
+            </template>
+            <el-space direction="vertical" fill class="w-full">
+              <el-button size="small" type="danger" @click.prevent="sendDeleteServerRequest(scope.row.name)">Delete</el-button>
+              <el-button size="small" type="warning" @click.prevent="sendRemoveServerRequest(scope.row.name)">Remove</el-button>
+            </el-space>
+            </el-popover>
+          </template>
       </el-table-column>
     </el-table>
 
