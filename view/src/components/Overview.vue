@@ -86,7 +86,7 @@ addEventListener("resize", () => {
 </script>
 
 <template>
-  <el-space :size="20" wrap fill fill-ratio="40" class="p-2 w-full">
+  <el-space :size="20" wrap fill fill-ratio="40" class="w-full">
     <el-card class="h-55">
       <template #header>Overview</template>
       <div class="flex flex-row gap-5 justify-around items-center">
@@ -121,7 +121,7 @@ addEventListener("resize", () => {
         </div>
       </div>
     </el-card>
-    <el-card class="h-50">
+    <el-card class="h-55">
       <template #header>Core Info</template>
       <el-skeleton :loading="onLoading" animated>
         <template #template>

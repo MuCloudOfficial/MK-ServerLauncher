@@ -1,11 +1,12 @@
 <script lang="ts">
 import axios from "axios";
 import { ref } from "vue";
+import {useStorage} from "@vueuse/core";
 
 export default {
   name: 'Shared',
 }
-export const backend = document.URL.split(new RegExp("/+"))[1]
+const backend = document.URL.split(new RegExp("/+"))[1]
 export const apiClient = axios.create({
   baseURL: `${document.URL.split(new RegExp("/+"))[0]}//${backend.split(":")[0]}:20038`, //TODO: Product版更改
   allowAbsoluteUrls: true,
@@ -83,5 +84,7 @@ export const getEnvs = () => { apiClient.get("/api/v1/env/list").then(res => {
 
 getServers()
 getEnvs()
+
+export let usingServers = useStorage<Array<string>>('using-servers', [])
 
 </script>

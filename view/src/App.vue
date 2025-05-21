@@ -98,9 +98,13 @@ const linkToDoc = () => {
         <template #title><span class="mx-4">About</span></template>
       </el-menu-item>
     </el-menu>
-    <el-main>
-      <el-scrollbar>
-        <RouterView />
+    <el-main class="!p-0">
+      <el-scrollbar >
+        <router-view class="p-5" v-slot="{ Component }">
+          <transition name="slide-fade">
+            <component :is="Component"/>
+          </transition>
+        </router-view>
       </el-scrollbar>
     </el-main>
   </el-container>
@@ -125,5 +129,14 @@ const linkToDoc = () => {
 }
 .main-view{
   height: calc(100dvh - 60px);
+}
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
 }
 </style>

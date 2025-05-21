@@ -9,10 +9,12 @@ import EnvironmentManager from "./components/EnvironmentManager.vue";
 import AboutPage from "./components/AboutPage.vue";
 import Settings from "./components/Settings.vue";
 import {createRouter, createWebHistory} from "vue-router";
+import ServerPage from "./components/Server/ServerPage.vue";
 
 const routes = [
     { path: '/', component: Overview },
     { path: '/servermanager', component: ServerManager },
+    { path: '/server/:name', component: ServerPage, props: true },
     { path: '/envmanager', component: EnvironmentManager },
     { path: '/about', component: AboutPage },
     { path: '/settings', component: Settings },
