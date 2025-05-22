@@ -8,8 +8,10 @@ pipeline {
     stages {
 		stage('MuView Build'){
 			steps {
+			    agent {
+			        customWorkspace '/view'
+			    }
 				sh 'echo Building MuView Deps'
-				sh 'cd ./view'
 				sh 'npm install'
 
 				sh 'echo Building MuView to MuCore'
