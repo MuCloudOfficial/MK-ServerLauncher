@@ -8,20 +8,20 @@ pipeline {
     stages {
 		stage('MuView Build'){
 			steps {
-			    agent {
-			        customWorkspace '/view'
+			    dir('/view'){
+			        sh 'echo Building MuView Deps'
+                    sh 'npm install'
+                    sh 'echo Building MuView to MuCore'
+                    sh 'npm build --outDir ../Core/src/main/resources/view'
 			    }
-				sh 'echo Building MuView Deps'
-				sh 'npm install'
-
-				sh 'echo Building MuView to MuCore'
-				sh 'npm build --outDir ../Core/src/main/resources/view'
             }
         }
         stage('MuCore Build'){
             steps{
-                sh 'echo Building MuCore'
-                sh './Core/gradlew build -x test'
+                dir('/Core'){
+                    sh 'echo Building MuCore'
+                     sh './Core/gradlew build -x test'
+                }
             }
         }
     }
