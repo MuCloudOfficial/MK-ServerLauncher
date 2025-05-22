@@ -23,8 +23,7 @@ pipeline {
     stage('MuCore Build') {
       agent {
         docker {
-          image 'node:22.16.0'
-          args '-p 3000:3000'
+          image 'gradle:8.14.0-jdk21'
         }
 
       }
