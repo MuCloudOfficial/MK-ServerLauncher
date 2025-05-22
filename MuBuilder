@@ -1,0 +1,23 @@
+pipeline {
+	agent {
+	    docker { image 'node:22.16.0' args '-p 3000:3000' }
+	}
+    stages {
+		stage('MuView Build'){
+			steps {
+				sh 'echo Building >> MuView | Introspecting MuCore Deps'
+				sh 'cd ./view'
+				sh 'npm install'
+
+				sh 'echo Building >> MuView | Building MuView to MuCore'
+				sh 'npm build --outDir ../Core/src/main/resources/view'
+            }
+        }
+        stage('MuCore Build'){
+            steps{
+                sh 'echo Building >> MuCore'
+                sh './Core/gradlew build -x test'
+            }
+        }
+    }
+}
