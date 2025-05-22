@@ -8,7 +8,7 @@ pipeline {
     stages {
 		stage('MuView Build'){
 			steps {
-			    dir('/view'){
+			    dir('/var/jenkins_home/workspace/MK-ServerLauncher_master/view'){
 			        sh 'echo Building MuView Deps'
                     sh 'npm install --registry https://regsitry.npmmirror.com'
                     sh 'echo Building MuView to MuCore'
@@ -18,7 +18,7 @@ pipeline {
         }
         stage('MuCore Build'){
             steps{
-                dir('/Core'){
+                dir('/var/jenkins_home/workspace/MK-ServerLauncher_master/Core'){
                     sh 'echo Building MuCore'
                      sh './Core/gradlew build -x test'
                 }
