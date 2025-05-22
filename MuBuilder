@@ -10,7 +10,7 @@ pipeline {
 			steps {
 			    dir('/var/jenkins_home/workspace/MK-ServerLauncher_master/view'){
 			        sh 'echo Building MuView Deps'
-                    sh 'npm install --registry https://regsitry.npmmirror.com'
+                    sh 'npm install --registry https://registry.npmmirror.com'
                     sh 'echo Building MuView to MuCore'
                     sh 'npm build --outDir ../Core/src/main/resources/view'
 			    }
