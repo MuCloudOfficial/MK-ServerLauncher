@@ -30,7 +30,7 @@ pipeline {
             steps{
                 dir('/var/jenkins_home/workspace/MK-ServerLauncher_master/Core'){
                     sh 'echo Building MuCore'
-                    sh 'sh ./gradlew build -x test'
+                     sh './gradlew build -x test'
                 }
             }
         }
