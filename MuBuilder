@@ -28,6 +28,9 @@ pipeline {
         }
 
       }
+      environment {
+        JAVA_HOME = '/opt/java/openjdk'
+      }
       steps {
         dir(path: '/var/jenkins_home/workspace/MK-ServerLauncher_master/Core') {
           sh 'echo Building MuCore'
@@ -37,8 +40,5 @@ pipeline {
       }
     }
 
-  }
-  environment {
-    JAVA_HOME = '/opt/java/openjdk/bin'
   }
 }
