@@ -12,7 +12,7 @@ pipeline {
 			        sh 'echo Building MuView Deps'
                     sh 'npm install --registry https://registry.npmmirror.com'
                     sh 'echo Building MuView to MuCore'
-                    sh 'npm run build --outDir ../Core/src/main/resources/view'
+                    sh 'npm run build'
 			    }
             }
         }

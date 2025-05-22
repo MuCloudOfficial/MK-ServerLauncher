@@ -36,7 +36,7 @@ fun Application.module() {
     routing {
         singlePageApplication {
             useResources = false
-            filesPath = "view/dist"
+            filesPath = "MuView"
             defaultPage = "index.html"
             ignoreFiles {
                 it.endsWith(".txt")
