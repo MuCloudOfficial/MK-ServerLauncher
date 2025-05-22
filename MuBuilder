@@ -12,7 +12,7 @@ pipeline {
 			        sh 'echo Building MuView Deps'
                     sh 'npm install --registry https://registry.npmmirror.com'
                     sh 'echo Building MuView to MuCore'
-                    sh 'npm run build --outDir ../Core/src/main/resources/view'
+                    sh 'npm run build'
 			    }
             }
         }
@@ -20,7 +20,7 @@ pipeline {
             steps{
                 dir('/var/jenkins_home/workspace/MK-ServerLauncher_master/Core'){
                     sh 'echo Building MuCore'
-                     sh './Core/gradlew build -x test'
+                     sh './gradlew build -x test'
                 }
             }
         }
