@@ -10,7 +10,7 @@ pipeline {
 			steps {
 			    dir('/view'){
 			        sh 'echo Building MuView Deps'
-                    sh 'npm install'
+                    sh 'npm install --registry https://regsitry.npmmirror.com'
                     sh 'echo Building MuView to MuCore'
                     sh 'npm build --outDir ../Core/src/main/resources/view'
 			    }
