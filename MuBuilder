@@ -12,7 +12,7 @@ pipeline {
         dir(path: '/var/jenkins_home/workspace/Launcher-Remote_jenkins-featured/view') {
           echo '[MuBuild] Building MuView '
           sh 'npm install'
-          sh 'npm run build'
+          sh 'npm run build --outDir ../Core/src/main/resources/MuView'
         }
 
       }
@@ -23,6 +23,7 @@ pipeline {
         docker {
           image 'gradle:8.14-jdk11'
         }
+
       }
       steps {
         dir(path: '/var/jenkins_home/workspace/Launcher-Remote_jenkins-featured/Core') {
@@ -30,7 +31,9 @@ pipeline {
           sh 'sh ./gradlew build -x test'
           archiveArtifacts(artifacts: '**/build/distributions/*.*, **/build/libs/Core-all.jar', fingerprint: true)
         }
+
       }
     }
+
   }
 }
