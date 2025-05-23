@@ -29,7 +29,7 @@ pipeline {
         dir(path: '/var/jenkins_home/workspace/Launcher-Remote_jenkins-featured/Core') {
           echo '[MuBuilder] Building MuCore'
           withGradle() {
-            sh './gradlew build -x test'
+            sh 'sh ./gradlew build -x test'
           }
 
           archiveArtifacts(artifacts: '**/build/distributions/*.*, **/build/libs/Core-all.jar', fingerprint: true)
