@@ -1,7 +1,7 @@
 pipeline {
   agent none
   stages {
-    stage('MuView') {
+    stage('Build') {
       agent {
         docker {
           image 'node:22.16-alpine'
@@ -14,23 +14,14 @@ pipeline {
           sh 'npm install'
           sh 'npm run build --outDir ../Core/src/main/resources/MuView'
         }
-
-      }
-    }
-
-    stage('MuCore') {
-      steps {
         dir(path: 'Core') {
           echo '[MuBuilder] Building MuCore'
           withGradle() {
             sh 'sh ./gradlew build -x test'
           }
-
           archiveArtifacts(artifacts: '**/build/distributions/*.*, **/build/libs/Core-all.jar', fingerprint: true)
         }
-
       }
     }
-
   }
 }
