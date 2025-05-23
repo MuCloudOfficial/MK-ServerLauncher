@@ -23,23 +23,14 @@ pipeline {
         docker {
           image 'gradle:8.14-jdk11'
         }
-
       }
       steps {
         dir(path: '/var/jenkins_home/workspace/Launcher-Remote_jenkins-featured/Core') {
           echo '[MuBuilder] Building MuCore'
           sh 'sh ./gradlew build -x test'
+          archiveArtifacts(artifacts: '**/build/distributions/*.*, **/build/libs/Core-all.jar', fingerprint: true)
         }
-
       }
     }
-
-  }
-  post {
-    always {
-      archiveArtifacts(artifacts: '/var/jenkins_home/workspace/MK-ServerLauncher_master/Core/build/distributions/**', fingerprint: true)
-      archiveArtifacts(artifacts: '/var/jenkins_home/workspace/MK-ServerLauncher_master/Core/build/libs/Core-all.jar', fingerprint: true)
-    }
-
   }
 }
