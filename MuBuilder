@@ -4,7 +4,7 @@ pipeline {
     stage('MuView Build') {
       agent {
         docker {
-          image 'node:22.16.0'
+          image 'node:22.16.0-alpine'
         }
 
       }
@@ -20,7 +20,12 @@ pipeline {
     }
 
     stage('MuCore Build') {
-      agent any
+      agent {
+        docker {
+          image 'gradle:8.13.0-alpine'
+        }
+
+      }
       steps {
         dir(path: '/var/jenkins_home/workspace/MK-ServerLauncher_master/Core') {
           sh 'echo Building MuCore'
