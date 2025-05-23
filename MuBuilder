@@ -19,6 +19,7 @@ pipeline {
     }
 
     stage('MuCore') {
+      agent any
       steps {
         dir(path: 'Core') {
           echo '[MuBuilder] Building MuCore'
