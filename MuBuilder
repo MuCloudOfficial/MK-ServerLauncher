@@ -9,7 +9,7 @@ pipeline {
 
       }
       steps {
-        dir(path: '/var/jenkins_home/workspace/Launcher-Remote_jenkins-featured/view') {
+        dir(path: 'view') {
           echo '[MuBuild] Building MuView '
           sh 'npm install'
           sh 'npm run build --outDir ../Core/src/main/resources/MuView'
@@ -19,14 +19,8 @@ pipeline {
     }
 
     stage('MuCore') {
-      agent {
-        docker {
-          image 'gradle:8.14-jdk11'
-        }
-
-      }
       steps {
-        dir(path: '/var/jenkins_home/workspace/Launcher-Remote_jenkins-featured/Core') {
+        dir(path: 'Core') {
           echo '[MuBuilder] Building MuCore'
           withGradle() {
             sh 'sh ./gradlew build -x test'
