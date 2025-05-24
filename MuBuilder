@@ -1,43 +1,41 @@
 pipeline {
   agent none
   stages {
-    stage('MuView Build') {
+    stage('MuView') {
       agent {
         docker {
-          image 'node:22.16.0'
-          args '-p 3000:3000'
+          image 'node:22.16-alpine'
         }
 
       }
       steps {
-        dir(path: '/var/jenkins_home/workspace/MK-ServerLauncher_master/view') {
-          sh 'echo Building MuView Deps'
-          sh 'npm install --registry https://registry.npmmirror.com'
-          sh 'echo Building MuView to MuCore'
+        dir(path: 'view') {
+          echo '[MuBuild] Building MuView '
+          sh 'npm install'
           sh 'npm run build'
+          stash(name: 'muview', includes: 'dist/**/*')
         }
 
       }
     }
 
-    stage('MuCore Build') {
-      agent {
-        docker {
-          image 'gradle:8.14.0-jdk21'
-        }
-
-      }
+    stage('MuCore') {
+      agent any
       steps {
-        dir(path: '/var/jenkins_home/workspace/MK-ServerLauncher_master/Core') {
-          sh 'echo Building MuCore'
-          sh 'sh ./gradlew build -x test'
+        dir(path: 'Core') {
+          echo '[MuBuilder] Building MuCore'
+          withGradle() {
+            unstash 'muview'
+            sh 'mkdir ./src/main/resources/MuView'
+            sh 'mv dist ./src/main/resources/MuView'
+            sh 'sh ./gradlew build -x test'
+          }
+
+          archiveArtifacts(artifacts: '**/build/distributions/*.*, **/build/libs/Core-all.jar', fingerprint: true)
         }
 
       }
     }
 
-  }
-  environment {
-    JAVA_HOME = '/opt/java/openjdk'
   }
 }
