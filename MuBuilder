@@ -13,6 +13,7 @@ pipeline {
           echo '[MuBuild] Building MuView '
           sh 'npm install'
           sh 'npm run build'
+          stash(name: 'muview', includes: 'dist/**/*')
         }
 
       }
@@ -24,8 +25,9 @@ pipeline {
         dir(path: 'Core') {
           echo '[MuBuilder] Building MuCore'
           withGradle() {
-            sh 'mkdir src/main/resource/MuView'
-            sh 'cp -r ../view/dist src/main/resource/MuView'
+            unstash 'muview'
+            sh 'mkdir ./src/main/resources/MuView'
+            sh 'mv dist ./src/main/resources/MuView'
             sh 'sh ./gradlew build -x test'
           }
 
