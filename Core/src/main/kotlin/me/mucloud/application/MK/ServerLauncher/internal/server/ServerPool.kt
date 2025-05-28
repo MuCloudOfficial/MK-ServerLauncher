@@ -1,12 +1,15 @@
 package me.mucloud.application.MK.ServerLauncher.internal.server
 
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServerAdapter
 import me.mucloud.application.MK.ServerLauncher.log
 import java.io.File
 import java.io.FileReader
+import java.nio.charset.StandardCharsets
 
 object ServerPool {
 
@@ -16,6 +19,17 @@ object ServerPool {
         AvailableType("leaves", "Leaves", "Fixed some broken Features based on Paper", "https://api.leavesmc.org/v2/projects/leaves")
     )
     internal val UNKNOWN_SERVERTYPE = AvailableType("unknown", "Unknown", "Unknown Type Server", "")
+
+    internal fun regType(type: AvailableType){
+        if(type.id == UNKNOWN_SERVERTYPE.id){
+            log.warn("DO NOT SET UNKNOWN AS SERVER TYPE")
+        }else if(AvailableTypePool.find { it.id == type.id } != null){
+            log.warn("Detected Conflict MCServer Type '${type.id}', it has been registered!")
+        }else{
+            log.info("Registered MC Server Type: ${type.name} (${type.id})")
+            AvailableTypePool.add(type)
+        }
+    }
 
     private val Pool: MutableList<MCJEServer> = mutableListOf()
 
@@ -29,6 +43,7 @@ object ServerPool {
     internal fun getOfflineServerCount(): Int = Pool.filter { !it.isRunning() }.size
     internal fun getAvailableType() = AvailableTypePool
     internal fun scanServer(){
+        val gson = GsonBuilder().registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter).create()
         Configuration.getServerFolder().listFiles().forEach fl@{ f ->
             if(f.isDirectory){
                 log.info("Searching Directory >> $f")
@@ -37,7 +52,7 @@ object ServerPool {
                     log.warn("Skipped")
                 }else{
                     log.info("Introspecting Server Description >> $f")
-                    addServer(Json.decodeFromString<MCJEServer>(FileReader(target).readText()))
+                    Pool.add(gson.fromJson(FileReader(target, StandardCharsets.UTF_8), object: TypeToken<MCJEServer>(){}))
                 }
             }
         }
@@ -45,7 +60,6 @@ object ServerPool {
 
     internal fun saveServers(){ Pool.forEach { it.saveToFile() } }
     internal fun getType(id: String): AvailableType = AvailableTypePool.find { it.id == id } ?: UNKNOWN_SERVERTYPE
-
 }
 
 @Serializable data class AvailableType(

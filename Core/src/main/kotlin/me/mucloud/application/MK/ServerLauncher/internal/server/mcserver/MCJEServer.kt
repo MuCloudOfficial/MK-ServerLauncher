@@ -1,6 +1,5 @@
 package me.mucloud.application.MK.ServerLauncher.internal.server.mcserver
 
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -8,7 +7,6 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.annotations.SerializedName
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -144,11 +142,11 @@ data class MCJEServer(
     fun getServerConsoleFlow() = serverConsoleFlow
 
     fun sendCommand(cmd: String){
-
+        TODO()
     }
 
     fun sendMsg(msg: String){
-
+        TODO()
     }
 
     @Serializable
@@ -243,15 +241,15 @@ object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServe
         c: JsonSerializationContext
     ): JsonElement {
         return JsonObject().also { i ->
-            val gson = GsonBuilder().setPrettyPrinting().create()
             i.addProperty("name", s.getName())
             i.addProperty("desc", s.getDescription())
             i.addProperty("version", s.getVersion())
             i.addProperty("type", s.getType().id)
             i.addProperty("port", s.getPort())
             i.addProperty("env", s.getEnv().name)
-            i.add("config", gson.toJsonTree(s.getConfig()))
-            i.add("before_works", gson.toJsonTree(s.getBeforeWorks()))
+            i.add("config", c.serialize(s.getConfig()))
+            i.add("before_works", c.serialize(s.getBeforeWorks()))
+            i.addProperty("location", s.getFolder().absolutePath)
         }
     }
 
@@ -260,7 +258,6 @@ object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServe
         t: Type,
         c: JsonDeserializationContext
     ): MCJEServer {
-        val gson = GsonBuilder().setPrettyPrinting().create()
         j.asJsonObject.also { v ->
             return MCJEServer(
                 v["name"].asString,
@@ -269,9 +266,9 @@ object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServe
                 v["desc"].asString,
                 v["port"].asInt,
                 EnvPool.getEnv(v["env"].asString)!!,
-                gson.fromJson(v["config"], object: TypeToken<Config>(){}),
-                gson.fromJson(v["before_works"], object: TypeToken<List<String>>(){}).toMutableList()
-            )
+                c.deserialize(v["config"], Config::class.java),
+                c.deserialize(v["before_works"], MutableList::class.java),
+            ).also { it.setFolder(File(v["location"].asString)) }
         }
     }
 }
