@@ -1,5 +1,14 @@
 package me.mucloud.application.MK.ServerLauncher.internal.server.mcserver
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -18,6 +27,7 @@ import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
 import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
 import me.mucloud.application.MK.ServerLauncher.internal.server.AvailableType
@@ -25,6 +35,7 @@ import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer.Config
 import java.io.File
 import java.io.FileWriter
+import java.lang.reflect.Type
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 
@@ -45,16 +56,15 @@ data class MCJEServer(
     private var port: Int = 25565,
     private var env: JavaEnvironment,
     private var config: Config,
-    private var beforeWork: MutableList<String> = mutableListOf(),
-
+    @SerializedName("before_works") private var beforeWork: MutableList<String> = mutableListOf(),
 ){
-
     private var location: File = File(Configuration.getServerFolder(), name)
     private var running: Boolean = false
     private val totalFailCount: Int = 0
     private val totalPassCount: Int = 0
 
-    private val serverConsoleFlow: MutableSharedFlow<String> = MutableSharedFlow()
+    @Transient private val serverInfoFlow = MutableSharedFlow<MCJEServer>()
+    @Transient private val serverConsoleFlow = MutableSharedFlow<String>()
 
     init{
         if(!location.exists()){
@@ -68,6 +78,10 @@ data class MCJEServer(
 
     fun regBeforeWork(work: String){
         beforeWork.add(work)
+    }
+
+    fun regBeforeWork(vararg work: String){
+        beforeWork.addAll(work)
     }
 
     fun start() {
@@ -126,6 +140,17 @@ data class MCJEServer(
         }
     }
 
+    fun getServerInfoFlow() = serverInfoFlow
+    fun getServerConsoleFlow() = serverConsoleFlow
+
+    fun sendCommand(cmd: String){
+
+    }
+
+    fun sendMsg(msg: String){
+
+    }
+
     @Serializable
     data class Config(
         internal var isOnline: Boolean = true,
@@ -139,7 +164,17 @@ data class MCJEServer(
         internal var allowGUI: Boolean = false,
         internal var minimumAllocatedMemory: Int = 512,
         internal var maximumAllocatedMemory: Int = 512,
-    )
+        internal var anotherConfig: MutableMap<String, String> = mutableMapOf()
+    ){
+
+        fun addProperty(key: String, value: String){
+            anotherConfig.put(key, value)
+        }
+
+        fun delProperty(key: String){
+            anotherConfig.remove(key)
+        }
+    }
 
 }
 
@@ -198,5 +233,45 @@ object MCJEServerSerializer: KSerializer<MCJEServer> {
         encodeSerializableElement(descriptor, 6, serializer<Config>(), value.getConfig())
         encodeSerializableElement(descriptor, 7, serializer<List<String>>(), value.getBeforeWorks())
         encodeStringElement(descriptor, 8, value.getFolder().absolutePath.toString())
+    }
+}
+
+object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServer>{
+    override fun serialize(
+        s: MCJEServer,
+        t: Type,
+        c: JsonSerializationContext
+    ): JsonElement {
+        return JsonObject().also { i ->
+            val gson = GsonBuilder().setPrettyPrinting().create()
+            i.addProperty("name", s.getName())
+            i.addProperty("desc", s.getDescription())
+            i.addProperty("version", s.getVersion())
+            i.addProperty("type", s.getType().id)
+            i.addProperty("port", s.getPort())
+            i.addProperty("env", s.getEnv().name)
+            i.add("config", gson.toJsonTree(s.getConfig()))
+            i.add("before_works", gson.toJsonTree(s.getBeforeWorks()))
+        }
+    }
+
+    override fun deserialize(
+        j: JsonElement,
+        t: Type,
+        c: JsonDeserializationContext
+    ): MCJEServer {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        j.asJsonObject.also { v ->
+            return MCJEServer(
+                v["name"].asString,
+                v["version"].asString,
+                ServerPool.getType(v["type"].asString),
+                v["desc"].asString,
+                v["port"].asInt,
+                EnvPool.getEnv(v["env"].asString)!!,
+                gson.fromJson(v["config"], object: TypeToken<Config>(){}),
+                gson.fromJson(v["before_works"], object: TypeToken<List<String>>(){}).toMutableList()
+            )
+        }
     }
 }

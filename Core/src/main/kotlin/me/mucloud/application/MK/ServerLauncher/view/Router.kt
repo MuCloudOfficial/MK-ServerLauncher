@@ -20,6 +20,7 @@ import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.delete
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.remove
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServerAdapter
 import java.io.File
 import java.util.*
 import java.util.jar.JarFile
@@ -41,6 +42,7 @@ fun Application.initRoute() {
     install(ContentNegotiation) {
         gson {
             setPrettyPrinting()
+            registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter)
         }
     }
     routing {
@@ -64,22 +66,19 @@ fun Application.initRoute() {
                     ) ?: return@get call.respond(HttpStatusCode.BadRequest)).remove()
                     call.respond(HttpStatusCode.OK)
                 }
+                get("start/{name}"){
+                    (ServerPool.getServer(
+                        call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    ) ?: return@get call.respond(HttpStatusCode.BadRequest)).start()
+                    call.respond(HttpStatusCode.OK)
+                }
+                get("stop/{name}"){
+                    (ServerPool.getServer(
+                        call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+                    ) ?: return@get call.respond(HttpStatusCode.BadRequest)).stop()
+                    call.respond(HttpStatusCode.OK)
+                }
 
-                /**
-                 *
-                 *  Serialized JSON Message for CreateServer
-                 *
-                 *  Response a [HttpStatusCode]
-                 *
-                 *  while the status code is:
-                 *
-                 *  [HttpStatusCode.OK] - Success in Create Server.
-                 *  [HttpStatusCode.BadRequest] - Wrong
-                 *
-                 *  @since DEV.1
-                 *  @author Mu_Cloud
-                 *
-                 */
                 post("create") {
                     call.receive<JsonObject>().also { j ->
                         if(ServerPool.getServer(j["name"].asString) != null){
@@ -119,21 +118,6 @@ fun Application.initRoute() {
                     }
                 }
 
-                /**
-                 *
-                 *  Serialized JSON Message for ImportServer
-                 *
-                 *  Response a [HttpStatusCode]
-                 *
-                 *  while the status code is:
-                 *
-                 *  [HttpStatusCode.OK] - Success in Import Server.
-                 *  [HttpStatusCode.BadRequest] - Wrong
-                 *
-                 *  @since DEV.1
-                 *  @author Mu_Cloud
-                 *
-                 */
                 post("import"){
                     call.receive<JsonObject>().also { r ->
                         try{
@@ -204,22 +188,6 @@ fun Application.initRoute() {
             }
 
             route("env"){
-                /**
-                 *  Serialized JSON Message for Environment List.
-                 *  Send a Json Array contains some Json Objects like following:
-                 *
-                 *     [
-                 *         {
-                 *             "env_name": "",
-                 *             "env_version": "",
-                 *             "env_path": ""
-                 *         }
-                 *         ...
-                 *     ]
-                 *
-                 *  @since DEV.1
-                 *  @author Mu_Cloud
-                 */
                 get("list") {
                     call.respond(EnvPool.getEnvList())
                 }

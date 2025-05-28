@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "me.mucloud"
-version = "VoidLand V1.DEV.16"
+version = "VoidLand V1.DEV.1"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
