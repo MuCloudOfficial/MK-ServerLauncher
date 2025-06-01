@@ -14,5 +14,5 @@
 ---
 
 <div align="center">
-<a href="https://mucloudofficial.github.io/MuCloudProjectDoc/mk-servermanager.html">&gt;&gt;&gt;项目文档&lt;&lt;&lt;</a>
+<a href="https://mucloudofficial.github.io/MuCloudProjectDoc/mksl-main.html">&gt;&gt;&gt;项目文档&lt;&lt;&lt;</a>
 </div>
