@@ -28,7 +28,6 @@ import kotlinx.serialization.serializer
 import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
 import me.mucloud.application.MK.ServerLauncher.internal.env.JavaEnvironment
 import me.mucloud.application.MK.ServerLauncher.internal.manage.Configuration
-import me.mucloud.application.MK.ServerLauncher.internal.server.AvailableType
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer.Config
 import java.io.File
@@ -49,7 +48,7 @@ import java.time.LocalDateTime
 data class MCJEServer(
     private var name: String,
     private val version: String,
-    private var type: AvailableType,
+    private var type: ServerType,
     private var desc: String,
     private var port: Int = 25565,
     private var env: JavaEnvironment,
@@ -61,8 +60,7 @@ data class MCJEServer(
     private val totalFailCount: Int = 0
     private val totalPassCount: Int = 0
 
-    @Transient private val serverInfoFlow = MutableSharedFlow<MCJEServer>()
-    @Transient private val serverConsoleFlow = MutableSharedFlow<String>()
+    private val serverFlow = MutableSharedFlow<JsonObject>()
 
     init{
         if(!location.exists()){
@@ -85,7 +83,13 @@ data class MCJEServer(
     fun start() {
         beforeWork.forEach { be ->
             Runtime.getRuntime().exec(be).errorStream.bufferedReader().forEachLine { l ->
-                runBlocking { serverConsoleFlow.emit(l) }
+                runBlocking { serverFlow.emit(JsonObject().also { j ->
+                    j.addProperty("type", "console.out:before_work")
+                    j.add("data", JsonObject().also { data ->
+                        data.addProperty("index", beforeWork.indexOf(be))
+                        data.addProperty("msg", l)
+                    })
+                }) }
             }
         }
         running = true
@@ -121,7 +125,7 @@ data class MCJEServer(
 
     fun getVersion(): String = version
 
-    fun getType(): AvailableType = type
+    fun getType(): ServerType = type
 
     fun getEnv(): JavaEnvironment = env
     fun setEnv(env: JavaEnvironment) { this.env = env }
@@ -138,8 +142,7 @@ data class MCJEServer(
         }
     }
 
-    fun getServerInfoFlow() = serverInfoFlow
-    fun getServerConsoleFlow() = serverConsoleFlow
+    fun getServerFlow() = serverFlow
 
     fun sendCommand(cmd: String){
         TODO()
@@ -194,7 +197,7 @@ object MCJEServerSerializer: KSerializer<MCJEServer> {
     override fun deserialize(decoder: Decoder): MCJEServer = decoder.decodeStructure(descriptor){
         var name: String? = null
         var version: String? = null
-        var type: AvailableType? = null
+        var type: ServerType? = null
         var desc: String? = null
         var port: Int? = null
         var env: JavaEnvironment? = null
@@ -240,16 +243,16 @@ object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServe
         t: Type,
         c: JsonSerializationContext
     ): JsonElement {
-        return JsonObject().also { i ->
-            i.addProperty("name", s.getName())
-            i.addProperty("desc", s.getDescription())
-            i.addProperty("version", s.getVersion())
-            i.addProperty("type", s.getType().id)
-            i.addProperty("port", s.getPort())
-            i.addProperty("env", s.getEnv().name)
-            i.add("config", c.serialize(s.getConfig()))
-            i.add("before_works", c.serialize(s.getBeforeWorks()))
-            i.addProperty("location", s.getFolder().absolutePath)
+        return JsonObject().apply {
+            addProperty("name", s.getName())
+            addProperty("desc", s.getDescription())
+            addProperty("version", s.getVersion())
+            addProperty("type", s.getType().id)
+            addProperty("port", s.getPort())
+            addProperty("env", s.getEnv().name)
+            add("config", c.serialize(s.getConfig()))
+            add("before_works", c.serialize(s.getBeforeWorks()))
+            addProperty("location", s.getFolder().absolutePath)
         }
     }
 
@@ -268,7 +271,7 @@ object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServe
                 EnvPool.getEnv(v["env"].asString)!!,
                 c.deserialize(v["config"], Config::class.java),
                 c.deserialize(v["before_works"], MutableList::class.java),
-            ).also { it.setFolder(File(v["location"].asString)) }
+            ).apply { setFolder(File(v["location"].asString)) }
         }
     }
 }
