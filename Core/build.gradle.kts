@@ -10,7 +10,7 @@ version = "VoidLand V1.DEV.1"
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
 
-    val isDevelopment: Boolean = /*project.ext.has("development")*/ true
+    val isDevelopment = /*project.ext.has("development")*/ true
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
@@ -33,7 +33,9 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.13")
     implementation("org.jsoup:jsoup:1.19.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.danilopianini:gson-extras:3.3.0")
 
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")}
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+}
