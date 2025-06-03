@@ -1,5 +1,6 @@
 package me.mucloud.application.MK.ServerLauncher.view
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.ktor.http.HttpMethod
@@ -13,22 +14,30 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import io.ktor.server.routing.route
+import me.mucloud.application.MK.ServerLauncher.initGson
 import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.delete
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.remove
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
-import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServerAdapter
 import java.io.File
-import java.util.*
+import java.util.Properties
 import java.util.jar.JarFile
+import kotlin.also
+import me.mucloud.application.MK.ServerLauncher.getGson
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuSend2ServerPacket
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerConfigPacket
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerInfoPacket
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerStartPacket
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerStopPacket
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.ServerType
 
 fun Application.initRoute() {
     //TODO("Remember Delete!!! Dev Use!!!)
     //Allow Any host & method from Cross origin
-    install(CORS) {
+    install(CORS){
         anyHost()
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Get)
@@ -40,16 +49,37 @@ fun Application.initRoute() {
         allowNonSimpleContentTypes = true
     }
     install(ContentNegotiation) {
-        gson {
-            setPrettyPrinting()
-            registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter)
+        gson{
+            initGson()
         }
     }
     routing {
         route("api/v1"){
+            route("test"){
+                get("MuPacketList"){
+                    val testServer = MCJEServer(
+                        "testserver",
+                        "1.19.2",
+                        ServerType.PAPER,
+                        "",
+                        25565,
+                        EnvPool.getEnv("TestEnv")!!,
+                        MCJEServer.Config()
+                    )
+                    call.respond(
+                        JsonArray().apply {
+                            add(getGson().toJsonTree(MuServerInfoPacket(testServer)))
+                            add(getGson().toJsonTree(MuServerStartPacket(testServer)))
+                            add(getGson().toJsonTree(MuServerStopPacket(testServer)))
+                            add(getGson().toJsonTree(MuSend2ServerPacket(testServer, "TestPlayer", "MSG")))
+                            add(getGson().toJsonTree(MuServerConfigPacket(MuServerConfigPacket.ConfigOperationType.ADD, "test", "test")))
+                        }
+                    )
+                }
+            }
             route("server"){
                 get("availableType"){
-                    call.respond(ServerPool.getAvailableType())
+                    call.respond(ServerPool.getAvailableTypes())
                 }
                 get("list") {
                     call.respond(ServerPool.getServerList())
