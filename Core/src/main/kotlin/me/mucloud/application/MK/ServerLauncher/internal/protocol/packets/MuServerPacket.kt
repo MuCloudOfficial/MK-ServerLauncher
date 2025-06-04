@@ -1,10 +1,7 @@
 package me.mucloud.application.MK.ServerLauncher.internal.protocol.packets
 
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
-import java.lang.reflect.Type
 import me.mucloud.application.MK.ServerLauncher.getGson
 import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
@@ -18,12 +15,8 @@ class MuServerStartPacket(
         addProperty("server", target.getName())
     }
 
-    override fun deserialize(
-        j: JsonElement,
-        t: Type,
-        c: JsonDeserializationContext
-    ): MuPacket =
-        MuServerStartPacket(ServerPool.getServer(j.asJsonObject["data"].asJsonObject["server"].asString) ?: throw JsonParseException("Server Not Found"))
+    override fun deserialize(j: JsonObject): MuPacket =
+        MuServerStartPacket(ServerPool.getServer(j["target_server"].asString) ?: throw JsonParseException("Server Not Found"))
 
     fun getServer() = target
 }
@@ -37,12 +30,8 @@ class MuServerStopPacket(
         addProperty("target_server", target.getName())
     }
 
-    override fun deserialize(
-        j: JsonElement,
-        t: Type,
-        c: JsonDeserializationContext
-    ): MuPacket =
-        MuServerStartPacket(ServerPool.getServer(j.asJsonObject["data"].asJsonObject["server"].asString) ?: throw JsonParseException("Server Not Found"))
+    override fun deserialize(j: JsonObject): MuPacket =
+        MuServerStartPacket(ServerPool.getServer(j["target_server"].asString) ?: throw JsonParseException("Server Not Found"))
 
     fun getServer() = target
 }
@@ -54,11 +43,7 @@ class MuServerInfoPacket(
     override val operation: String = "info"
     override val data: JsonObject = getGson().toJsonTree(targetServer).asJsonObject
 
-    override fun deserialize(
-        j: JsonElement,
-        t: Type,
-        c: JsonDeserializationContext
-    ): MuPacket =
+    override fun deserialize(j: JsonObject): MuPacket =
         MuServerInfoPacket(getGson().fromJson(j.asJsonObject["data"].asJsonObject["target_server"], MCJEServer::class.java))
 
     fun getServer() = targetServer
@@ -70,7 +55,7 @@ class MuServerConfigPacket(
     val value: String?,
 ): MuPacket{
     override val id: String = "config"
-    override val operation: String = type.name
+    override val operation: String = type.name.lowercase()
     override val data: JsonObject = JsonObject().apply {
         addProperty("key", key)
         if(type != ConfigOperationType.DEL){
@@ -78,24 +63,17 @@ class MuServerConfigPacket(
         }
     }
 
-    override fun deserialize(
-        j: JsonElement,
-        t: Type,
-        c: JsonDeserializationContext
-    ): MuPacket {
-        val data = j.asJsonObject["data"]
-        return MuServerConfigPacket(
-            ConfigOperationType.valueOf(data.asJsonObject["type"].asString.uppercase()),
-            data.asJsonObject["key"].asString,
-            data.asJsonObject["value"].asString
+    override fun deserialize(j: JsonObject): MuPacket =
+        MuServerConfigPacket(
+            ConfigOperationType.valueOf(j["type"].asString.uppercase()),
+            j["key"].asString,
+            j["value"].asString
         )
-    }
 
     enum class ConfigOperationType{
         ADD, DEL, MOD;
 
         override fun toString(): String = name.lowercase()
-
     }
 }
 

@@ -3,6 +3,7 @@ package me.mucloud.application.MK.ServerLauncher.view
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.gson.gson
@@ -14,25 +15,28 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.routing.routing
 import io.ktor.server.routing.route
-import me.mucloud.application.MK.ServerLauncher.initGson
-import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
-import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
-import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.delete
-import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.remove
-import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
+import io.ktor.server.routing.routing
 import java.io.File
-import java.util.Properties
+import java.util.*
 import java.util.jar.JarFile
-import kotlin.also
 import me.mucloud.application.MK.ServerLauncher.getGson
+import me.mucloud.application.MK.ServerLauncher.internal.env.EnvPool
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuBroadcastPacket
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuPacket
+import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuPacketFactory
 import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuSend2ServerPacket
 import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerConfigPacket
 import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerInfoPacket
 import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerStartPacket
 import me.mucloud.application.MK.ServerLauncher.internal.protocol.packets.MuServerStopPacket
+import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool
+import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.delete
+import me.mucloud.application.MK.ServerLauncher.internal.server.ServerPool.remove
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServer
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.MCJEServerAdapter
 import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.ServerType
+import me.mucloud.application.MK.ServerLauncher.internal.server.mcserver.ServerTypeSerializer
 
 fun Application.initRoute() {
     //TODO("Remember Delete!!! Dev Use!!!)
@@ -50,7 +54,27 @@ fun Application.initRoute() {
     }
     install(ContentNegotiation) {
         gson{
-            initGson()
+//            val factory =
+//                RuntimeTypeAdapterFactory
+//                    .of(MuPacket::class.java, "type")
+//                    .registerSubtype(MuServerConfigPacket::class.java, "config")
+//                    .registerSubtype(MuSend2ServerPacket::class.java, "msg.in:send")
+//                    .registerSubtype(MuBroadcastPacket::class.java, "msg.in:broadcast")
+//                    .registerSubtype(MuServerInfoPacket::class.java, "server:info")
+//                    .registerSubtype(MuServerStartPacket::class.java, "server:start")
+//                    .registerSubtype(MuServerStopPacket::class.java, "server:stop")
+
+            setPrettyPrinting()
+            registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter)
+            registerTypeAdapter(ServerType::class.java, ServerTypeSerializer)
+
+            registerTypeAdapter(MuPacket::class.java, MuPacketFactory)
+            registerTypeAdapter(MuServerInfoPacket::class.java, MuPacketFactory)
+            registerTypeAdapter(MuServerStartPacket::class.java, MuPacketFactory)
+            registerTypeAdapter(MuServerStopPacket::class.java, MuPacketFactory)
+            registerTypeAdapter(MuSend2ServerPacket::class.java, MuPacketFactory)
+            registerTypeAdapter(MuServerConfigPacket::class.java, MuPacketFactory)
+//            registerTypeAdapterFactory(factory)
         }
     }
     routing {
@@ -66,14 +90,11 @@ fun Application.initRoute() {
                         EnvPool.getEnv("TestEnv")!!,
                         MCJEServer.Config()
                     )
-                    call.respond(
-                        JsonArray().apply {
-                            add(getGson().toJsonTree(MuServerInfoPacket(testServer)))
-                            add(getGson().toJsonTree(MuServerStartPacket(testServer)))
-                            add(getGson().toJsonTree(MuServerStopPacket(testServer)))
-                            add(getGson().toJsonTree(MuSend2ServerPacket(testServer, "TestPlayer", "MSG")))
-                            add(getGson().toJsonTree(MuServerConfigPacket(MuServerConfigPacket.ConfigOperationType.ADD, "test", "test")))
-                        }
+                    call.respond(listOf(MuServerInfoPacket(testServer),
+                        MuServerStartPacket(testServer),
+                        MuServerStopPacket(testServer),
+                        MuSend2ServerPacket(testServer, "TestPlayer", "MSG"),
+                        MuServerConfigPacket(MuServerConfigPacket.ConfigOperationType.ADD, "test", "test"))
                     )
                 }
             }

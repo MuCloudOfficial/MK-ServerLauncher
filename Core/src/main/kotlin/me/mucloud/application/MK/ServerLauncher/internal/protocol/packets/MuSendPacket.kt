@@ -32,11 +32,7 @@ class MuSend2ServerPacket(
         addProperty("msg", msg)
     }
 
-    override fun deserialize(
-        j: JsonElement,
-        t: Type,
-        c: JsonDeserializationContext
-    ): MuPacket {
+    override fun deserialize(j: JsonObject): MuPacket {
         TODO()
     }
 
@@ -54,11 +50,7 @@ class MuBroadcastPacket(
         addProperty("msg", msg)
     }
 
-    override fun deserialize(
-        j: JsonElement,
-        t: Type,
-        c: JsonDeserializationContext
-    ): MuPacket {
+    override fun deserialize(j: JsonObject): MuPacket {
         TODO("Not yet implemented")
     }
 

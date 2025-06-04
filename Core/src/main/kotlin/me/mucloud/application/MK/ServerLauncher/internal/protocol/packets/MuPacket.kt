@@ -4,11 +4,13 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonParseException
+import com.google.gson.JsonParser
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import java.lang.reflect.Type
 
-interface MuPacket: JsonSerializer<MuPacket>, JsonDeserializer<MuPacket> {
+interface MuPacket {
 
     /**
      * # | MuPacket ID
@@ -33,37 +35,33 @@ interface MuPacket: JsonSerializer<MuPacket>, JsonDeserializer<MuPacket> {
      */
     val data: JsonObject
 
-    /**
-     * # | MuPacket 序列化
-     *
-     * ## !! 不应直接实现该方法，如非必要，请优先实现变量 [data]
-     *
-     * @see data
-     * @since DEV.1
-     * @author Mu_Cloud
-     */
+    fun deserialize(
+        j: JsonObject
+    ): MuPacket
+
+}
+
+object MuPacketFactory: JsonSerializer<MuPacket>, JsonDeserializer<MuPacket>{
+
+    private val ReflectPool = mutableMapOf<String, MuPacket>()
+
+    private fun reflectPacket(type: String): MuPacket = ReflectPool[type] ?: throw UnsupportedOperationException("Unsupported MuPacket Type")
+
     override fun serialize(
-        s: MuPacket,
+        m: MuPacket,
         t: Type,
         c: JsonSerializationContext
-    ): JsonElement = JsonObject().apply {
-        addProperty("type", "$id:$operation")
-        add("data", data)
+    ): JsonElement = JsonObject().apply{
+        addProperty("type", "${m.id}:${m.operation}")
+        add("data", m.data)
     }
 
-    /**
-     * # | MuPacket 反序列化
-     *
-     * 实现该方法以提供基于 MuPacket 数据的反序列化实现
-     *
-     * @since DEV.1
-     * @author Mu_Cloud
-     */
     override fun deserialize(
         j: JsonElement,
         t: Type,
         c: JsonDeserializationContext
-    ): MuPacket
+    ): MuPacket =
+        reflectPacket(j.asJsonObject["type"].asString).deserialize(j.asJsonObject["data"].asJsonObject)
 
 }
 
