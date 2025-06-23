@@ -44,7 +44,7 @@ compose.desktop {
             packageName = "MK-ServerLauncher Desktop Platform Edition (DPE)"
             packageVersion = "4.0.0"
             description = "Wow! Mu_Mu Here!"
-            copyright = "© 2025 Mu_Cloud. All rights reserved."
+            copyright = "© 2025 Mu_Cloud, All rights reserved."
             vendor = "Mu_Cloud"
             windows{
                 upgradeUuid = "cdeb74ce-fbcb-470f-88f1-e665694a52d6".uppercase()

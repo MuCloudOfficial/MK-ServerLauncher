@@ -9,6 +9,10 @@ version = "0.0.1"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
+
+    // Development Mode
+    val isDevelopment = /*project.ext.has("development")*/ true
+    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
 repositories {
