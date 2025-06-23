@@ -153,19 +153,19 @@ data class MCJEServer(
     }
 
     @Serializable
-    data class Config(
-        internal var isOnline: Boolean = true,
-        internal var isWhileListed: Boolean = false,
-        internal var maxPlayer: Int = 20,
-        internal var viewDistance: Int = 10,
-        internal var allowNether: Boolean = true,
-        internal var spawnProtectRange: Int = 10,
-        internal var jvmFlagTemplate: String = "none",
-        internal var anotherJVMFlags: String = "",
-        internal var allowGUI: Boolean = false,
-        internal var minimumAllocatedMemory: Int = 512,
-        internal var maximumAllocatedMemory: Int = 512,
-        internal var anotherConfig: MutableMap<String, String> = mutableMapOf()
+    data class Config( //todo
+        var isOnline: Boolean = true,
+        var isWhileListed: Boolean = false,
+        var maxPlayer: Int = 20,
+        var viewDistance: Int = 10,
+        var allowNether: Boolean = true,
+        var spawnProtectRange: Int = 10,
+        var jvmFlagTemplate: String = "none",
+        var anotherJVMFlags: String = "",
+        var allowGUI: Boolean = false,
+        var minimumAllocatedMemory: Int = 512,
+        var maximumAllocatedMemory: Int = 512,
+        var anotherConfig: MutableMap<String, String> = mutableMapOf()
     ){
 
         fun add(key: String, value: String){

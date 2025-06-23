@@ -36,12 +36,20 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "me.mucloud.dpe.MainKt"
+        mainClass = "me.mucloud.application.mk.serverlauncher.dpe.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "me.mucloud.dpe"
-            packageVersion = "1.0.0"
+            packageName = "MK-ServerLauncher Desktop Platform Edition (DPE)"
+            packageVersion = "4.0.0"
+            description = "Wow! Mu_Mu Here!"
+            copyright = "© 2025 Mu_Cloud. All rights reserved."
+            vendor = "Mu_Cloud"
+            windows{
+                upgradeUuid = "cdeb74ce-fbcb-470f-88f1-e665694a52d6".uppercase()
+                iconFile.set(project.file("icon.ico"))
+                println(project.file("icon.ico").absolutePath)
+            }
         }
     }
 }

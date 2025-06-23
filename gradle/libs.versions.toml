@@ -52,6 +52,7 @@ ktor-pack = [
     "ktor-server-request-validation",
     "ktor-server-cors",
     "ktor-serialization-gson",
+    "ktor-serialization-kotlinx-json",
 ]
 
 kotlinSerialization = ["kotlinx-serialization-core", "kotlinx-serialization-json"]

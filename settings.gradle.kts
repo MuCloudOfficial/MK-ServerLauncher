@@ -3,6 +3,8 @@
 // It is also used for some aspects of project-wide configuration, like managing plugins, dependencies, etc.
 // https://docs.gradle.org/current/userguide/settings_file_basics.html
 
+
+// Gradle Settings combined with Ktor & KMP Compose Desktop
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 dependencyResolutionManagement {
@@ -45,6 +47,7 @@ plugins {
 
 
 rootProject.name = "MK-ServerLauncher"
+
 include("Common")
 include("HPE")
 include("DPE")
