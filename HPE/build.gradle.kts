@@ -1,0 +1,25 @@
+plugins {
+    kotlin("jvm") version libs.versions.kotlin
+    id("io.ktor.plugin") version libs.versions.ktor
+    alias(libs.plugins.kotlin.serialization) apply false
+}
+
+group = "me.mucloud"
+version = "0.0.1"
+
+application {
+    mainClass = "io.ktor.server.netty.EngineMain"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(":Common"))
+    implementation(libs.bundles.ktor.pack)
+
+    implementation("ch.qos.logback:logback-classic:1.5.13")
+    testImplementation("io.ktor:ktor-server-test-host")
+    testImplementation(libs.kotlin.testJunit)
+}
