@@ -1,23 +1,18 @@
-# TestMultiModule
+<h3 style="font-size: 24px" align="center">系列 III · 第二幕</h3>
+<h1 style="font-size: 32px; font-weight: bold" align="center">WIP - MK-ServerLauncher</h1>
 
-This project uses [Gradle](https://gradle.org/).
-To build and run the application, use the *Gradle* tool window by clicking the Gradle icon in the right-hand toolbar,
-or run it directly from the terminal:
+<div align="center">
+<img alt="Static Badge" src="https://img.shields.io/badge/Vue-3.5.13-gray?style=flat&logo=vue.js&logoColor=white&labelColor=darkgreen">
+<img alt="Static Badge" src="https://img.shields.io/badge/TailwindCSS-4.1.3-gray?style=flat&logo=tailwindcss&logoColor=white&labelColor=blue">
+<img alt="Static Badge" src="https://img.shields.io/badge/ElementPlus-2.9.10-gray?style=flat&logoColor=white&labelColor=blue">
+<img alt="Static Badge" src="https://img.shields.io/badge/Kotlin-2.1.20-gray?style=flat&logo=kotlin&logoColor=white&labelColor=purple">
+<img alt="Static Badge" src="https://img.shields.io/badge/Ktor-3.1.3-gray?style=flat&logo=ktor&logoColor=white&labelColor=purple">
+</div><br/>
 
-* Run `./gradlew run` to build and run the application.
-* Run `./gradlew build` to only build the application.
-* Run `./gradlew check` to run all checks, including tests.
-* Run `./gradlew clean` to clean all build outputs.
+<p align="center">服务器管理 WEB 应用</p>
 
-Note the usage of the Gradle Wrapper (`./gradlew`).
-This is the suggested way to use Gradle in production projects.
+---
 
-[Learn more about the Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-
-[Learn more about Gradle tasks](https://docs.gradle.org/current/userguide/command_line_interface.html#common_tasks).
-
-This project follows the suggested multi-module setup and consists of the `app` and `utils` subprojects.
-The shared build logic was extracted to a convention plugin located in `buildSrc`.
-
-This project uses a version catalog (see `gradle/libs.versions.toml`) to declare and version dependencies
-and both a build cache and a configuration cache (see `gradle.properties`).
+<div align="center">
+<a href="https://mucloudofficial.github.io/MuCloudProjectDoc/mksl-main.html">&gt;&gt;&gt;项目文档&lt;&lt;&lt;</a>
+</div>
