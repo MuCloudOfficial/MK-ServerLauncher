@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+@theme {
+  --default-font-family: 'Poppins', 'DM Mono', sans-serif;
+}
+
+:root, html, body{
+  margin: 0;
+  padding: 0;
+}
