@@ -16,14 +16,14 @@ object EnvPool {
     private val envFile = File(Configuration.getConfigurationFolder(), "env.json")
 
     init {
-        regCurrentJavaEnvironment()
+        // regCurrentJavaEnvironment()
         if(!envFile.exists()) {
             envFile.createNewFile()
             FileWriter(envFile).also { it.write("[]"); it.flush() }
         }
-
     }
 
+    @Deprecated("Unstable.")
     private fun regCurrentJavaEnvironment(){
         val pid = ManagementFactory.getRuntimeMXBean().name.split("@").first()
 

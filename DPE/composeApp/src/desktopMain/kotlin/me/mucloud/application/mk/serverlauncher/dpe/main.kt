@@ -33,6 +33,7 @@ fun main() = application {
         undecorated = true
     ) {
         Column(Modifier.background(Color.Gray, RoundedCornerShape(10.dp)).padding(10.dp).fillMaxSize()) {
+            // Draggable TopBar
             WindowDraggableArea(Modifier.background(Color.White, RoundedCornerShape(10.dp)).height(50.dp).fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()) {
                     Text("MK-ServerLauncher DPE", color = Color.Black,
@@ -44,6 +45,7 @@ fun main() = application {
             }
             Spacer(Modifier.height(10.dp).fillMaxWidth())
             Box(Modifier.background(Color.White, RoundedCornerShape(10.dp)).fillMaxSize()){
+                // Main Page
                 App()
             }
         }
