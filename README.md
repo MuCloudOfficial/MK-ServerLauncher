@@ -26,3 +26,7 @@
 <div align="center">
 <a href="https://mucloudofficial.github.io/MuCloudProjectDoc/mksl-main.html">&gt;&gt;&gt; 项目文档 &lt;&lt;&lt;</a>
 </div>
+
+<div align="center">
+<a href="https://github.com/MuCloudOfficial/MK-ServerLauncher-HPE">&gt;&gt;&gt; 另请参阅: MK-ServerLauncher HPE (Hybrid WebServer Platform Edition) &lt;&lt;&lt;</a>
+</div>
