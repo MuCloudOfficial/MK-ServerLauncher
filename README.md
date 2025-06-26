@@ -1,8 +1,8 @@
 <h3 style="font-size: 24px" align="center">系列 III · 第二幕</h3>
 <h1 style="font-size: 32px; font-weight: bold" align="center">WIP - MK-ServerLauncher</h1>
 
-<p align="center">The MultiPlatform & Multi-Formed Application to Manage your Minecraft Dedicated Servers</p>
-<p align="center">一个用于管理 Minecraft 服务端的多平台 & 多形态应用</p>
+<p align="center">The MultiPlatform Application to Manage your Minecraft Dedicated Servers</p>
+<p align="center">一个用于管理 Minecraft 服务端的多平台应用</p>
 
 
 <div align="center">
@@ -25,8 +25,4 @@
 
 <div align="center">
 <a href="https://mucloudofficial.github.io/MuCloudProjectDoc/mksl-main.html">&gt;&gt;&gt; 项目文档 &lt;&lt;&lt;</a>
-</div>
-
-<div align="center">
-<a href="https://github.com/MuCloudOfficial/MK-ServerLauncher-HPE">&gt;&gt;&gt; 另请参阅: MK-ServerLauncher HPE (Hybrid WebServer Platform Edition) &lt;&lt;&lt;</a>
 </div>
