@@ -9,7 +9,7 @@ import {
   type FormRules,
 } from "element-plus";
 import { h, onMounted, reactive, ref, } from "vue";
-import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "../Shared.vue";
+import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "@shared/Shared.vue";
 
 onMounted(() => {
   getServers()
@@ -19,12 +19,11 @@ onMounted(() => {
 let AvailableMCSType = ref()
 const AvailableMCSVersionLoading = ref(false)
 const AvailableMCSVersion = ref([])
+const AvailableJVMFlagsTemplate = ref<Array<{name: String, flags: String}>>([])
 
-const AvailableJVMFlagsTemplate = [
-  {value: 'none', label: 'No Flag', flag: ''},
-  {value: 'aikar', label: "Aikar's Flags", flag: '-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true'},
-  {value: 'custom', label: 'Custom', flag: ''},
-]
+const fetchJVMFlagsTemplates  = () =>{
+  apiClient.get("/api/v1/server/jvmFlagTemplates").then(res => AvailableJVMFlagsTemplate.value = res.data )
+}
 
 const fetchMCSVersionList = (api: string) => {
   ServerFormData.version = ''
@@ -653,8 +652,8 @@ const cancelImportServer = () => {
             <el-form-item prop="jvm_flag_template">
               <template #label><span class="text-base">JVM Startup Flags</span></template>
               <el-select v-model="ServerFormData.jvm_flag_template"
-                         @change="(value: any) => { ServerFormData.jvm_aflags = AvailableJVMFlagsTemplate.find((v) => v.value == value)?.flag as string }">
-                <el-option v-for="i in AvailableJVMFlagsTemplate" :value="i.value" :label="i.label"/>
+                         @change="(value: any) => { ServerFormData.jvm_aflags = AvailableJVMFlagsTemplate.find((v) => v.flags == value)?.flags as string }">
+                <el-option v-for="i in AvailableJVMFlagsTemplate" :value="i.flags" :label="i.name"/>
               </el-select>
             </el-form-item>
             <el-form-item>
@@ -782,8 +781,8 @@ const cancelImportServer = () => {
             <el-form-item prop="jvm_flag_template">
               <template #label><span class="text-base">JVM Startup Flags</span></template>
               <el-select v-model="ServerImportFormData.jvm_flag_template"
-                         @change="(value: any) => { ServerImportFormData.jvm_aflags = AvailableJVMFlagsTemplate.find((v) => v.value == value)?.flag as string }">
-                <el-option v-for="i in AvailableJVMFlagsTemplate" :value="i.value" :label="i.label"/>
+                         @change="(value: any) => { ServerImportFormData.jvm_aflags = AvailableJVMFlagsTemplate.find((v) => v.flags == value)?.flags as string }">
+                <el-option v-for="i in AvailableJVMFlagsTemplate" :value="i.flags" :label="i.name"/>
               </el-select>
             </el-form-item>
             <el-form-item>

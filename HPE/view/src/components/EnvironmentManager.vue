@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue"
-import {apiClient} from "./Shared.vue";
+import {apiClient} from "@shared/Shared.vue";
 import {
   type ComponentSize,
   ElNotification,
   type FormInstance,
   type FormRules
 } from "element-plus";
-import { ENV_LIST, getEnvs } from "./Shared.vue";
+import { ENV_LIST, getEnvs } from "@shared/Shared.vue";
 let onImport = ref(false)
 
 onMounted(() => getEnvs())

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {MuWebSocket, usingServers} from "../Shared.vue";
+import {MuWebSocket, usingServers} from "@shared/Shared.vue";
 import {onMounted, ref} from "vue";
 import type {TabPaneName} from "element-plus";
 import {useRouter} from "vue-router";

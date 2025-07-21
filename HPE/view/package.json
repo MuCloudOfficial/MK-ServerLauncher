@@ -1,7 +1,7 @@
 {
   "name": "muview",
   "private": true,
-  "version": "3.1.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,12 +18,14 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@types/node": "^24.0.14",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
+    "typescript": "~5.8.3",
     "unplugin-auto-import": "^19.1.2",
     "unplugin-vue-components": "^28.4.1",
     "vite": "^6.3.5",
-    "vue-tsc": "^2.2.4",
-    "typescript": "~5.8.3"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vue-tsc": "^2.2.4"
   }
 }

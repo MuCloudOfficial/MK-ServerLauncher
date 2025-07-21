@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, shallowRef} from "vue";
 import {useTransition} from "@vueuse/core";
-import {MuWebSocket} from "./Shared.vue";
+import {MuWebSocket} from "@shared/Shared.vue";
 
 let tsk = -1
 let onLoading = ref(true)
