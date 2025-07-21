@@ -1,30 +1,68 @@
 package me.mucloud.application.mk.serverlauncher.common.manage
 
 import java.io.File
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFile
+import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFolder
+import net.mamoe.yamlkt.Comment
+import net.mamoe.yamlkt.Yaml
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-object Configuration {
+@Serializable
+class Configuration{
 
-    private var ServerFolder: String = "server"
-    private var ConfigurationFolder: String = "config"
-    private var ConfigurationFile: String = "common.conf"
-    private var PluginPackFolder: String = "plugins"
-    private var LogFolder: String = "log"
+    @Comment("Define Configuration Version, DO NOT MODIFY UNTIL IN NECESSARY!")
+    private val ConfigurationVersion: Int = 0
 
-    private var ConfigurationVersion: Int = 0
+    @Comment("Define the MuPlugins Folder Position")
+    private val PluginFolder: String = "plugins"
 
-    fun getConfigurationFolder(): File = File(ConfigurationFolder).absoluteFile
+    @Comment("Define the Minecraft Server Folder in installation")
+    private val ServerFolder: String = "server"
+
+    @Comment("Define the MK-ServerLauncher Folder including Log Files Position")
+    private val LogFolder: String = "log"
+
+    @Comment("Define the MuWSServer Port to communicate with Minecraft Servers by WebSocket")
+    private val WSPort: Int = 20038
+
+    @Comment("Define WebSocket Token")
+    private val WSToken: String = "iLoveMu"
+
     fun getServerFolder(): File = File(ServerFolder).absoluteFile
-    fun getConfigFile(): File = File(getConfigurationFolder(), ConfigurationFile).absoluteFile
     fun getLogFolder(): File = File(LogFolder).absoluteFile
+    fun getWSPort(): Int = WSPort
 
-    fun init(){
+    init{
         getLogFolder()
-        getConfigurationFolder().mkdirs()
-        getConfigFile().createNewFile()
         getServerFolder().mkdirs()
     }
+
+    fun save(){
+        File(ConfigurationFolder, ConfigurationFile).writeText(Yaml.encodeToString(this))
+    }
+
+}
+
+object ConfigurationFactory{
+
+    internal val ConfigurationFolder: String = "config"
+    internal val ConfigurationFile: String = "common.yml"
+    internal var BufferedConfiguration: Configuration? = null
+
+    fun getConfiguration(): Configuration{
+        if(BufferedConfiguration == null){
+            BufferedConfiguration = Yaml.decodeFromString<Configuration>(
+                File(ConfigurationFolder, ConfigurationFile).readText()
+            )
+        }
+        return BufferedConfiguration!!
+    }
+
+    fun getConfigurationFolder(): File = File(ConfigurationFolder).absoluteFile
+    fun getConfigurationFile(): File = File(getConfigurationFolder(), ConfigurationFile)
 
 }
 

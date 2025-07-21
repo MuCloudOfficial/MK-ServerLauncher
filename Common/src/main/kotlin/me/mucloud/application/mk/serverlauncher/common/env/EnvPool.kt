@@ -3,17 +3,17 @@ package me.mucloud.application.mk.serverlauncher.common.env
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import me.mucloud.application.mk.serverlauncher.common.manage.Configuration
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 import java.lang.management.ManagementFactory
 import java.nio.charset.StandardCharsets
+import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 
 object EnvPool {
 
     private val POOL: MutableList<JavaEnvironment> = mutableListOf()
-    private val envFile = File(Configuration.getConfigurationFolder(), "env.json")
+    private val envFile = File(ConfigurationFactory.getConfigurationFolder(), "env.json")
 
     init {
         // regCurrentJavaEnvironment()
@@ -23,7 +23,7 @@ object EnvPool {
         }
     }
 
-    @Deprecated("Unstable.")
+    @Deprecated("Unstable. Changing to Multi-Platform Impl.")
     private fun regCurrentJavaEnvironment(){
         val pid = ManagementFactory.getRuntimeMXBean().name.split("@").first()
 

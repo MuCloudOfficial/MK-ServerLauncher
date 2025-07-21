@@ -19,13 +19,6 @@ import java.io.File
 import java.util.*
 import java.util.jar.JarFile
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
-import me.mucloud.application.mk.serverlauncher.common.packets.MuPacket
-import me.mucloud.application.mk.serverlauncher.common.packets.MuPacketFactory
-import me.mucloud.application.mk.serverlauncher.common.packets.MuSend2ServerPacket
-import me.mucloud.application.mk.serverlauncher.common.packets.MuServerConfigPacket
-import me.mucloud.application.mk.serverlauncher.common.packets.MuServerInfoPacket
-import me.mucloud.application.mk.serverlauncher.common.packets.MuServerStartPacket
-import me.mucloud.application.mk.serverlauncher.common.packets.MuServerStopPacket
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool.delete
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool.remove
@@ -35,8 +28,6 @@ import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerTyp
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerTypeSerializer
 
 fun Application.initRoute() {
-    //TODO("Remember Delete!!! Dev Use!!!)
-    //Allow Any host & method from Cross origin
     install(CORS){
         anyHost()
         allowMethod(HttpMethod.Post)
@@ -50,53 +41,19 @@ fun Application.initRoute() {
     }
     install(ContentNegotiation) {
         gson{
-//            val factory =
-//                RuntimeTypeAdapterFactory
-//                    .of(MuPacket::class.java, "type")
-//                    .registerSubtype(MuServerConfigPacket::class.java, "config")
-//                    .registerSubtype(MuSend2ServerPacket::class.java, "msg.in:send")
-//                    .registerSubtype(MuBroadcastPacket::class.java, "msg.in:broadcast")
-//                    .registerSubtype(MuServerInfoPacket::class.java, "server:info")
-//                    .registerSubtype(MuServerStartPacket::class.java, "server:start")
-//                    .registerSubtype(MuServerStopPacket::class.java, "server:stop")
-
             setPrettyPrinting()
             registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter)
             registerTypeAdapter(ServerType::class.java, ServerTypeSerializer)
-
-            registerTypeAdapter(MuPacket::class.java, MuPacketFactory)
-            registerTypeAdapter(MuServerInfoPacket::class.java, MuPacketFactory)
-            registerTypeAdapter(MuServerStartPacket::class.java, MuPacketFactory)
-            registerTypeAdapter(MuServerStopPacket::class.java, MuPacketFactory)
-            registerTypeAdapter(MuSend2ServerPacket::class.java, MuPacketFactory)
-            registerTypeAdapter(MuServerConfigPacket::class.java, MuPacketFactory)
-//            registerTypeAdapterFactory(factory)
         }
     }
     routing {
         route("api/v1"){
-            route("test"){
-                get("MuPacketList"){
-                    val testServer = MCJEServer(
-                        "testserver",
-                        "1.19.2",
-                        ServerType.PAPER,
-                        "",
-                        25565,
-                        EnvPool.getEnv("TestEnv")!!,
-                        MCJEServer.Config()
-                    )
-                    call.respond(listOf(MuServerInfoPacket(testServer),
-                        MuServerStartPacket(testServer),
-                        MuServerStopPacket(testServer),
-                        MuSend2ServerPacket(testServer, "TestPlayer", "MSG"),
-                        MuServerConfigPacket(MuServerConfigPacket.ConfigOperationType.ADD, "test", "test"))
-                    )
-                }
-            }
-            route("server"){
+            route("server"){ // RESTful API | Servers
                 get("availableType"){
                     call.respond(ServerPool.getAvailableTypes())
+                }
+                get("jvmFlagTemplates"){
+                    call.respond("")
                 }
                 get("list") {
                     call.respond(ServerPool.getServerList())
@@ -140,21 +97,21 @@ fun Application.initRoute() {
                                         j["desc"].asString,
                                         j["port"].asInt,
                                         EnvPool.getEnv(j["env"].asString)!!,
-                                        MCJEServer.Config(
-                                            jvmFlagTemplate = j["jvm_flag_template"].asString,
-                                            anotherJVMFlags = j["jvm_aflags"].asString,
-                                            maxPlayer = j["max_player"].asInt,
-                                            minimumAllocatedMemory = j["minimum_mem"].asInt,
-                                            maximumAllocatedMemory = j["maximum_mem"].asInt,
-                                            isOnline = j["online"].asBoolean,
-                                            isWhileListed = j["whitelist"].asBoolean,
-                                            spawnProtectRange = j["spawn_protect"].asInt,
-                                            viewDistance = j["view_distance"].asInt,
-                                            allowGUI = j["allow_gui"].asBoolean,
-                                            allowNether = j["allow_nether"].asBoolean,
-                                        ),
                                         j["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }.toMutableList()
-                                    )
+                                    ).apply { getConfig().apply {
+                                            set("jvmFlagTemplate", j["jvm_flag_template"].asString)
+                                            set("anotherJVMFlags", j["jvm_aflags"].asString)
+                                            set("maxPlayer", j["max_player"].asInt)
+                                            set("minimumAllocatedMemory", j["minimum_mem"].asInt)
+                                            set("maximumAllocatedMemory", j["maximum_mem"].asInt)
+                                            set("isOnline", j["online"].asBoolean)
+                                            set("isWhileListed", j["whitelist"].asBoolean)
+                                            set("spawnProtectRange", j["spawn_protect"].asInt)
+                                            set("viewDistance", j["view_distance"].asInt)
+                                            set("allowGUI", j["allow_gui"].asBoolean)
+                                            set("allowNether", j["allow_nether"].asBoolean)
+                                        }
+                                    }
                                 )
                             }catch (e: Exception) {
                                 call.respond(HttpStatusCode.BadRequest, e.toString())
@@ -173,7 +130,8 @@ fun Application.initRoute() {
 
                             var type = "Unknown"
                             var version = "Unknown"
-                            if(ServerPool.getServer(target) != null || !File(targetPath).exists()){
+                            val targetServer = ServerPool.getServer(target)
+                            if(targetServer != null || !File(targetPath).exists()){
                                 call.respond(HttpStatusCode.BadRequest)
                             }else{
                                 val targetJar = JarFile(File(targetPath))
@@ -202,28 +160,26 @@ fun Application.initRoute() {
 
                             val targetFolder = File(targetPath).parentFile
                             val targetConf = File(targetFolder, "server.properties")
-                            val config = MCJEServer.Config()
-                            if(targetConf.exists()){
-                                Properties().also {
-                                    it.load(targetConf.reader())
-                                    config.allowNether = it.getProperty("allow-nether").toBoolean()
-                                    config.isWhileListed = it.getProperty("white-list").toBoolean()
-                                    config.isOnline = it.getProperty("online-mode").toBoolean()
-                                    config.maxPlayer = it.getProperty("max-players").toInt()
-                                    config.viewDistance = it.getProperty("view-distance").toInt()
-                                    config.spawnProtectRange = it.getProperty("spawn-protection").toInt()
-                                }
-                            }
                             ServerPool.addServer(MCJEServer(
                                 target, version, ServerPool.getType(type),
                                 r["desc"].asString,
                                 r["port"].asInt,
                                 EnvPool.getEnv(r["env"].asString)!!,
-                                config,
                                 r["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }.toMutableList()
-                            ).also {
-                                it.setFolder(targetFolder)
-                                it.saveToFile()
+                            ).apply {
+                                if(targetConf.exists()){
+                                    Properties().apply {
+                                        load(targetConf.reader())
+                                        getConfig().set("allowNether", getProperty("allow-nether").toBoolean())
+                                        getConfig().set("isWhileListed", getProperty("white-list").toBoolean())
+                                        getConfig().set("isOnline", getProperty("online-mode").toBoolean())
+                                        getConfig().set("maxPlayer", getProperty("max-players").toInt())
+                                        getConfig().set("viewDistance", getProperty("view-distance").toInt())
+                                        getConfig().set("spawnProtectRange", getProperty("spawn-protection").toInt())
+                                    }
+                                }
+                                setFolder(targetFolder)
+                                saveToFile()
                             })
                             call.respond(HttpStatusCode.OK)
                         }catch (e: Exception){
@@ -234,7 +190,7 @@ fun Application.initRoute() {
                 }
             }
 
-            route("env"){
+            route("env"){ // RESTful API | Environment
                 get("list") {
                     call.respond(EnvPool.getEnvList())
                 }

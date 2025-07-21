@@ -1,6 +1,6 @@
 package me.mucloud.application.mk.serverlauncher.hpe.view
 
-import com.google.gson.JsonParser
+import com.google.gson.Gson
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.gson.GsonWebsocketContentConverter
 import io.ktor.server.application.Application
@@ -13,15 +13,10 @@ import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.sendSerialized
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import me.mucloud.application.mk.serverlauncher.common.packets.MuPacketParser
-import me.mucloud.application.mk.serverlauncher.common.packets.getGson
-import me.mucloud.application.mk.serverlauncher.hpe.external.monitor.SystemMonitor
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
+import me.mucloud.application.mk.serverlauncher.hpe.external.monitor.SystemMonitor
 
 fun Application.initWebSocket() {
     install(WebSockets) {
@@ -29,7 +24,7 @@ fun Application.initWebSocket() {
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
         masking = false
-        contentConverter = GsonWebsocketContentConverter(getGson())
+        contentConverter = GsonWebsocketContentConverter(Gson())
     }
     routing {
         // WebSocket >> Fetch System Status & AppInfo Pack & Server Status Info Flow
@@ -48,14 +43,6 @@ fun Application.initWebSocket() {
             launch{
                 target.getServerFlow().collect{
                     sendSerialized(it)
-                }
-            }
-            launch{
-                incoming.consumeEach{
-                    if(it is Frame.Text){
-                        val json = JsonParser.parseString(it.readText()).asJsonObject
-                        MuPacketParser.parseFromJson(json)
-                    }
                 }
             }
         }
