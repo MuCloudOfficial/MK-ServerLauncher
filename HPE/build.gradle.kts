@@ -22,6 +22,7 @@ repositories {
 dependencies {
     implementation(project(":Common"))
     implementation(libs.bundles.ktor.pack)
+    implementation(libs.bundles.gson.pack)
 
     implementation("ch.qos.logback:logback-classic:1.5.13")
     testImplementation("io.ktor:ktor-server-test-host")
