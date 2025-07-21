@@ -1,5 +1,7 @@
 package me.mucloud.application.mk.serverlauncher.common.server.mcserver
 
+import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
+
 enum class MCJavaEnvCompMap(
     val lowestCode: Int,
     val recommendCode: Int,
@@ -35,4 +37,9 @@ enum class JavaVersion(
     ;
 
     override fun toString(): String = code.toString()
+
+    companion object{
+        fun get(env: JavaEnvironment): JavaVersion =
+            JavaVersion.entries.find { v -> env.version.startsWith(v.jVer)  } ?: V1_7
+    }
 }

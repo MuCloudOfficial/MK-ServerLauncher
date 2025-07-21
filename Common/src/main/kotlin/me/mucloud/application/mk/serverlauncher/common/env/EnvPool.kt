@@ -23,7 +23,7 @@ object EnvPool {
         }
     }
 
-    @Deprecated("Unstable.")
+    @Deprecated("Unstable. Changing to Multi-Platform Impl.")
     private fun regCurrentJavaEnvironment(){
         val pid = ManagementFactory.getRuntimeMXBean().name.split("@").first()
 
