@@ -6,7 +6,6 @@ import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
-import java.lang.management.ManagementFactory
 import java.nio.charset.StandardCharsets
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 
@@ -16,23 +15,10 @@ object EnvPool {
     private val envFile = File(ConfigurationFactory.getConfigurationFolder(), "env.json")
 
     init {
-        // regCurrentJavaEnvironment()
+        // regCurrentJavaEnvironment() todo
         if(!envFile.exists()) {
             envFile.createNewFile()
             FileWriter(envFile).also { it.write("[]"); it.flush() }
-        }
-    }
-
-    @Deprecated("Unstable. Changing to Multi-Platform Impl.")
-    private fun regCurrentJavaEnvironment(){
-        val pid = ManagementFactory.getRuntimeMXBean().name.split("@").first()
-
-        if(System.getProperty("os.name").startsWith("Windows")){
-            val proc = ProcessBuilder("wmic", "process", "where", "processId=$pid", "get", "ExecutablePath")
-                .redirectErrorStream(true).start()
-            proc.inputStream.bufferedReader().use { r ->
-                r.readText().lines().firstOrNull { t -> t.endsWith(".exe")}?.trim()
-            }
         }
     }
 
