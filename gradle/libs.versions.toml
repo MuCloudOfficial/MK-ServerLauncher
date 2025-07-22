@@ -15,7 +15,7 @@ gson = { module = "com.google.code.gson:gson", version = "2.13.1" }
 gson-extras = { module = "org.danilopianini:gson-extras", version = "3.3.0" }
 
 netty-all = { module = "io.netty:netty-all", version = "4.2.2.Final" }
-yamlkt = { module = "net.mamoe.yamlkt:yamlkt", version = "0.13.0" }
+yamlkt = { module = "net.mamoe.yamlkt:yamlkt-jvm", version = "0.13.0" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }

@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm") version libs.versions.kotlin
     id("io.ktor.plugin") version libs.versions.ktor
-    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "me.mucloud"

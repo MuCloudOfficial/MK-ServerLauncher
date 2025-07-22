@@ -1,5 +1,6 @@
 plugins{
     kotlin("jvm") version libs.versions.kotlin
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "me.mucloud"
