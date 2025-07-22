@@ -7,13 +7,12 @@ import io.ktor.server.http.content.ignoreFiles
 import io.ktor.server.http.content.singlePageApplication
 import io.ktor.server.netty.EngineMain
 import io.ktor.server.routing.routing
-import me.mucloud.application.mk.serverlauncher.common.manage.Configuration
-import me.mucloud.application.mk.serverlauncher.hpe.view.initWebSocket
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
 import me.mucloud.application.mk.serverlauncher.hpe.external.monitor.SystemMonitor
 import me.mucloud.application.mk.serverlauncher.hpe.view.initRoute
+import me.mucloud.application.mk.serverlauncher.hpe.view.initWebSocket
 
 fun main(args: Array<String>) {
     EngineMain.main(args)

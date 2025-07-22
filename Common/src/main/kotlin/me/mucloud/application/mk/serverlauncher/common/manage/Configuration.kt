@@ -11,10 +11,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @Serializable
-class Configuration{
-
+data class Configuration(
     @Comment("Define Configuration Version, DO NOT MODIFY UNTIL IN NECESSARY!")
     private val ConfigurationVersion: Int = 0
+){
 
     @Comment("Define the MuPlugins Folder Position")
     private val PluginFolder: String = "plugins"
@@ -42,18 +42,31 @@ class Configuration{
 
     fun save(){
         File(ConfigurationFolder, ConfigurationFile).writeText(Yaml.encodeToString(this))
+        log.info("MKSL Configuration File Saved.")
     }
 
 }
 
 object ConfigurationFactory{
 
-    internal val ConfigurationFolder: String = "config"
-    internal val ConfigurationFile: String = "common.yml"
+    internal const val ConfigurationFolder: String = "config"
+    internal const val ConfigurationFile: String = "common.yml"
     internal var BufferedConfiguration: Configuration? = null
+
+    private var firstCreate: Boolean = false
+
+    init {
+        firstCreate =
+            File(ConfigurationFolder).absoluteFile.mkdirs() ||
+                    File(ConfigurationFolder, ConfigurationFile).absoluteFile.createNewFile()
+        if(firstCreate) log.warn("MK-ServerLauncher Configuration Module may first Launch, MKSL Configuration File Created.")
+    }
 
     fun getConfiguration(): Configuration{
         if(BufferedConfiguration == null){
+            if(firstCreate){
+                Configuration().save()
+            }
             BufferedConfiguration = Yaml.decodeFromString<Configuration>(
                 File(ConfigurationFolder, ConfigurationFile).readText()
             )
