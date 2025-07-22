@@ -2,14 +2,14 @@ package me.mucloud.application.mk.serverlauncher.common.server
 
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import me.mucloud.application.mk.serverlauncher.common.manage.Configuration
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServer
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerAdapter
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerType
 import java.io.File
 import java.io.FileReader
 import java.nio.charset.StandardCharsets
+import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 import me.mucloud.application.mk.serverlauncher.common.manage.log
+import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServer
+import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerAdapter
+import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerType
 
 object ServerPool {
 
@@ -28,7 +28,7 @@ object ServerPool {
     fun getAvailableTypes() = ServerTypePool
     fun scanServer(){
         val gson = GsonBuilder().registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter).create()
-        Configuration.getServerFolder().listFiles().forEach fl@{ f ->
+        ConfigurationFactory.getConfiguration().getServerFolder().listFiles().forEach fl@{ f ->
             if(f.isDirectory){
                 log.info("Searching Directory >> $f")
                 val target = f.listFiles().find { sf -> sf.name == "MK-ServerLauncher.json" }

@@ -17,10 +17,8 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.Serializable
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
 import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
-import me.mucloud.application.mk.serverlauncher.common.manage.Configuration
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
 
@@ -150,9 +148,7 @@ data class MCJEServer(
         TODO("Implementation in iLoveMu")
     }
 
-    @Serializable
     inner class Config{
-
         val configFile: File = File(getFolder(), "server.properties")
         val anotherConfig = mutableMapOf<String, Any>()
         val properties: Properties = Properties().apply {
