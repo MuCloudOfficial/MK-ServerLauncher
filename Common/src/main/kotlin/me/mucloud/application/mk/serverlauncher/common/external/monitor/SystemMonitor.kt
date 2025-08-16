@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.hpe.external.monitor
+package me.mucloud.application.mk.serverlauncher.common.external.monitor
 
 import com.sun.management.OperatingSystemMXBean
 import kotlinx.coroutines.async
