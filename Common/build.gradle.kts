@@ -12,6 +12,7 @@ dependencies {
     implementation(libs.kotlinx.coroutinesSwing)
     implementation(libs.yamlkt)
     implementation(libs.netty.all)
+    implementation(libs.okHttp)
     implementation("org.slf4j:slf4j-api:2.0.17")
 
     testImplementation(libs.kotlin.testJunit)
