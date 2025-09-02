@@ -3,6 +3,7 @@ package me.mucloud.application.mk.serverlauncher.common.env
 import java.io.File
 import java.io.FileReader
 import kotlinx.serialization.Serializable
+import me.mucloud.application.mk.serverlauncher.common.api.MuEnvironment
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.JavaVersion
 
 /**
@@ -17,7 +18,7 @@ import me.mucloud.application.mk.serverlauncher.common.server.mcserver.JavaVersi
 data class JavaEnvironment(
     val name: String,
     val path: String
-){
+): MuEnvironment{
     var version: String = "Unknown"
 
     init {
@@ -32,5 +33,11 @@ data class JavaEnvironment(
         }
     }
 
-    fun getCodeVersion(): Int = JavaVersion.get(this).code
+    override fun getName(): String  = name
+
+    override fun getVersionString(): String = version
+
+    override fun getVersion(): Int = JavaVersion.get(this).code
+
+    override fun getExecFile(): File = File(path)
 }

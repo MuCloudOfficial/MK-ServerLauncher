@@ -30,7 +30,7 @@ object SystemMonitor {
                     MonitorFlow.emit(StatusPacket(
                         SystemStatus(cpuUsage, memoryUsage),
                         ServerStatus(ServerPool.getTotalServer(), ServerPool.getOnlineServerCount(), ServerPool.getOfflineServerCount()),
-                        AppInfoStatus("MuCore MPE DEV Mini", "LovePoem V1 DEV.1", 0, 2),
+                        AppInfoStatus("MuCore HPE DEV Mini", "LovePoem V1 DEV.1", 0, 2),
                     ))
                 }
             }}.await()

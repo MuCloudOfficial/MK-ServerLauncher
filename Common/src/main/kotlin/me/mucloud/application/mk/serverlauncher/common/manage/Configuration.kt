@@ -5,10 +5,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFile
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFolder
+import me.mucloud.application.mk.serverlauncher.common.utils.log
 import net.mamoe.yamlkt.Comment
 import net.mamoe.yamlkt.Yaml
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 @Serializable
 data class Configuration(
@@ -78,5 +77,3 @@ object ConfigurationFactory{
     fun getConfigurationFile(): File = File(getConfigurationFolder(), ConfigurationFile)
 
 }
-
-val log: Logger = LoggerFactory.getLogger("MK-ServerLauncher | MuCore")

@@ -5,17 +5,14 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import java.lang.reflect.Type
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
+import kotlinx.serialization.Serializable
 
+@Serializable
 abstract class ServerType(
     val id: String,
     val name: String,
     val desc: String,
 ) {
-
-    init {
-        if (id != "unknown") ServerPool.addType(this)
-    }
 
     /**
      * 获取该服务器种类对应的支持版本列表
@@ -58,32 +55,45 @@ abstract class ServerType(
     }
 
     companion object{
-        val UNKNOWN = object : ServerType("unknown", "Unknown", "Unknown") {
-            override fun getVerList(): List<String> = mutableListOf()
-            override fun getCoreLinkByVer(ver: String): String = "Unknown"
-        }
+        val Spigot: ServerType
+            get() = object: ServerType("spigot", "Spigot", "Spigot Server Core"){
+                override fun getVerList(): List<String> {
+                    TODO("Not yet implemented")
+                }
 
-        val PAPER = object: ServerType("paper", "PaperSpigot", "A High Performance Server based on Spigot"){
-            override fun getVerList(): List<String> {
-                TODO()
+                override fun getCoreLinkByVer(ver: String): String {
+                    TODO("Not yet implemented")
+                }
             }
 
-            override fun getCoreLinkByVer(ver: String): String {
-                TODO("Not yet implemented")
-            }
-        }
+        val Paper: ServerType
+            get() = object: ServerType("paper", "Paper", ""){
+                override fun getVerList(): List<String> {
+                    TODO("Not yet implemented")
+                }
 
-        val LEAVES = object: ServerType("leaves", "Leaves", "A High Performance Server with Fixed Broken Features"){
-            override fun getVerList(): List<String> {
-                TODO("Not yet implemented")
+                override fun getCoreLinkByVer(ver: String): String {
+                    TODO("Not yet implemented")
+                }
             }
 
-            override fun getCoreLinkByVer(ver: String): String {
-                TODO("Not yet implemented")
+        val Leave: ServerType
+            get() = object: ServerType("leaves", "Leaves", ""){
+                override fun getVerList(): List<String> {
+                    TODO("Not yet implemented")
+                }
+
+                override fun getCoreLinkByVer(ver: String): String {
+                    TODO("Not yet implemented")
+                }
             }
-        }
+
+        val Unknown: ServerType
+            get() = object: ServerType("unknown", "Unknown", "Unknown"){
+                override fun getVerList(): List<String> = emptyList()
+                override fun getCoreLinkByVer(ver: String): String = ""
+            }
     }
-
 }
 
 object ServerTypeSerializer: JsonSerializer<ServerType>{

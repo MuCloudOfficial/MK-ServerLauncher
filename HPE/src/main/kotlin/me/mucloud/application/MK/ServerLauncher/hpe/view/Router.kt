@@ -33,4 +33,5 @@ fun Application.initRoute() {
 
     initServerRoute()
     initEnvRoute()
+    initMuCoreRoute()
 }

@@ -10,7 +10,7 @@ import io.ktor.server.routing.routing
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
-import me.mucloud.application.mk.serverlauncher.hpe.external.monitor.SystemMonitor
+import me.mucloud.application.mk.serverlauncher.common.external.monitor.SystemMonitor
 import me.mucloud.application.mk.serverlauncher.hpe.view.initRoute
 import me.mucloud.application.mk.serverlauncher.hpe.view.initWebSocket
 

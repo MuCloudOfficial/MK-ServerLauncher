@@ -6,14 +6,19 @@ import java.io.File
 import java.io.FileReader
 import java.nio.charset.StandardCharsets
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
-import me.mucloud.application.mk.serverlauncher.common.manage.log
+import me.mucloud.application.mk.serverlauncher.common.utils.log
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServer
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerAdapter
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerType
 
 object ServerPool {
 
-    private val ServerTypePool = mutableListOf<ServerType>()
+    private val ServerTypePool = mutableListOf<ServerType>(
+        ServerType.Spigot,
+        ServerType.Leave,
+        ServerType.Paper,
+        ServerType.Unknown,
+    )
 
     private val Pool: MutableList<MCJEServer> = mutableListOf()
 
@@ -43,7 +48,7 @@ object ServerPool {
     }
 
     fun saveServers(){ Pool.forEach { it.saveToFile() } }
-    fun getType(id: String): ServerType = ServerTypePool.find { it.id == id } ?: ServerType.UNKNOWN
+    fun getType(id: String): ServerType = ServerTypePool.find { it.id == id } ?: ServerType.Unknown
     internal fun addType(type: ServerType){
         if (ServerTypePool.contains(type)){
             log.warn("Ambiguous Server Type Detected >> ${type.id}")
