@@ -50,5 +50,3 @@ rootProject.name = "MK-ServerLauncher"
 
 include("Common")
 include("HPE")
-include("DPE")
-include("DPE:composeApp")
