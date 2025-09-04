@@ -3,6 +3,7 @@ package me.mucloud.application.mk.serverlauncher.common.env
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import me.mucloud.application.mk.serverlauncher.common.api.MuEnvironment
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -11,7 +12,7 @@ import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFacto
 
 object EnvPool {
 
-    private val POOL: MutableList<JavaEnvironment> = mutableListOf()
+    private val POOL: MutableList<MuEnvironment> = mutableListOf()
     private val envFile = File(ConfigurationFactory.getConfigurationFolder(), "env.json")
 
     init {
@@ -38,10 +39,9 @@ object EnvPool {
         }
     }
 
-    fun getEnv(name: String) = POOL.find { it.name == name }
-    internal fun getEnv(name: String, path: String) = POOL.find { it.name == name || it.path == path }
+    fun getEnv(name: String) = POOL.find { it.getName() == name }
 
-    internal fun deleteEnv(env: JavaEnvironment){ POOL.remove(env) }
+    internal fun deleteEnv(env: MuEnvironment){ POOL.remove(env) }
 
     fun deleteEnv(name: String): Boolean{
         getEnv(name).let {
@@ -55,7 +55,7 @@ object EnvPool {
     }
 
     fun addEnv(name: String, path: String): Boolean{
-        getEnv(name, path).let {
+        getEnv(name).let {
             if (it != null) {
                 return false
             }else{
@@ -65,6 +65,6 @@ object EnvPool {
         }
     }
 
-    fun getEnvList(): List<JavaEnvironment> = POOL
+    fun getEnvList(): List<MuEnvironment> = POOL
 
 }

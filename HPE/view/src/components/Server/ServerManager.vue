@@ -9,7 +9,7 @@ import {
   type FormRules,
 } from "element-plus";
 import { h, onMounted, reactive, ref, } from "vue";
-import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "@shared/Shared.vue";
+import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "@shared/shared.ts";
 
 onMounted(() => {
   getServers()

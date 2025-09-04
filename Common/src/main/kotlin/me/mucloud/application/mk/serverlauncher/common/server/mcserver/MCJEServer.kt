@@ -197,7 +197,7 @@ object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServe
                 ServerPool.getType(v["type"].asString),
                 v["desc"].asString,
                 v["port"].asInt,
-                EnvPool.getEnv(v["env"].asString)!!,
+                EnvPool.getEnv(v["env"].asString) as JavaEnvironment,
                 c.deserialize(v["before_works"], MutableList::class.java),
             ).apply { setFolder(File(v["location"].asString)) }
         }
