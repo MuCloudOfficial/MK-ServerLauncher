@@ -7,7 +7,7 @@ import {
   type FormInstance,
   type FormRules
 } from "element-plus";
-import { ENV_LIST, getEnvs } from "@shared/shared.ts";
+import { ENV_LIST, getEnvs } from "@api/MuEnv.ts";
 let onImport = ref(false)
 
 onMounted(() => getEnvs())

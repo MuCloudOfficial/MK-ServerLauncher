@@ -9,7 +9,9 @@ import {
   type FormRules,
 } from "element-plus";
 import { h, onMounted, reactive, ref, } from "vue";
-import { apiClient, ENV_LIST, SERVER_LIST, getServers, } from "@shared/shared.ts";
+import { apiClient } from "@shared/shared.ts";
+import { SERVER_LIST, getServers} from "@api/MuServer.ts";
+import { ENV_LIST } from "@api/MuEnv.ts";
 
 onMounted(() => {
   getServers()

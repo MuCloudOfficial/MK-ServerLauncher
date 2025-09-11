@@ -14,6 +14,7 @@ import java.io.File
 import java.util.Properties
 import java.util.jar.JarFile
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
+import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool.delete
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool.remove
@@ -70,7 +71,7 @@ fun Application.initServerRoute() {
                                     ServerPool.getType(j["type"].asString),
                                     j["desc"].asString,
                                     j["port"].asInt,
-                                    EnvPool.getEnv(j["env"].asString)!!,
+                                    EnvPool.getEnv(j["env"].asString)!! as JavaEnvironment,
                                     j["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }
                                         .toMutableList()
                                 ).apply {
@@ -143,7 +144,7 @@ fun Application.initServerRoute() {
                                 target, version, ServerPool.getType(type),
                                 r["desc"].asString,
                                 r["port"].asInt,
-                                EnvPool.getEnv(r["env"].asString)!!,
+                                EnvPool.getEnv(r["env"].asString)!! as JavaEnvironment,
                                 r["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }
                                     .toMutableList()
                             ).apply {

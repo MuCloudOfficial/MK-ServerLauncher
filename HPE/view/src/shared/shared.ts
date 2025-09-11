@@ -1,6 +1,6 @@
 import axios from "axios";
-import { ref } from "vue";
-import {useStorage} from "@vueuse/core";
+import {getServers} from "@api/MuServer.ts";
+import {getEnvs} from "@api/MuEnv.ts";
 
 const backend = document.URL.split(new RegExp("/+"))[1]
 export const apiClient = axios.create({
@@ -12,6 +12,7 @@ export const apiClient = axios.create({
         'Accept': 'application/json',
     }
 });
+
 export class MuWebSocket {
     private backend = `ws://${backend.split(":")[0]}`  // TODO: 多前端
     private port = 20038 /*document.URL.split(new RegExp("/+"))[1].split(":")[1]*/ //TODO: Product版更改
@@ -67,18 +68,5 @@ export class MuWebSocket {
     }
 }
 
-export let ENV_LIST = ref()
-export let SERVER_LIST = ref()
-
-export const getServers = () => { apiClient.get("/api/v1/server/list").then(res => {
-    SERVER_LIST.value = res.data
-})}
-
-export const getEnvs = () => { apiClient.get("/api/v1/env/list").then(res => {
-    ENV_LIST.value = res.data
-})}
-
 getServers()
 getEnvs()
-
-export let usingServers = useStorage<Array<string>>('using-servers', [])
