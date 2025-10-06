@@ -1,14 +1,10 @@
-package me.mucloud.application.mk.serverlauncher.common.env
+package me.mucloud.application.mk.serverlauncher.common.api.core.env
 
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
-import me.mucloud.application.mk.serverlauncher.common.api.MuEnvironment
+import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 import java.io.File
-import java.io.FileReader
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
-import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 
 object EnvPool {
 
@@ -20,15 +16,6 @@ object EnvPool {
         if(!envFile.exists()) {
             envFile.createNewFile()
             FileWriter(envFile).also { it.write("[]"); it.flush() }
-        }
-    }
-
-    fun scanEnv(){
-        Gson().fromJson<List<JavaEnvironment>>(
-            FileReader(envFile.also { if(!it.exists()) return }, StandardCharsets.UTF_8),
-            object: TypeToken<List<JavaEnvironment>>(){}.type
-        ).forEach { e ->
-            POOL.add(e)
         }
     }
 
@@ -54,12 +41,12 @@ object EnvPool {
         }
     }
 
-    fun addEnv(name: String, path: String): Boolean{
-        getEnv(name).let {
+    fun addEnv(env: MuEnvironment): Boolean{
+        getEnv(env.getName()).let {
             if (it != null) {
                 return false
             }else{
-                POOL.add(JavaEnvironment(name, path))
+                POOL.add(env)
                 return true
             }
         }

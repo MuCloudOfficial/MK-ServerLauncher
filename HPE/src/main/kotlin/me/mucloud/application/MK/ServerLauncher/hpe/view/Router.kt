@@ -6,10 +6,10 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServer
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerAdapter
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerType
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerTypeSerializer
+import me.mucloud.application.mk.serverlauncher.common.MCJEServer.MCJEServer
+import me.mucloud.application.mk.serverlauncher.common.MCJEServer.MCJEServerAdapter
+import me.mucloud.application.mk.serverlauncher.common.api.core.server.mcserver.ServerType
+import me.mucloud.application.mk.serverlauncher.common.api.core.server.mcserver.ServerTypeSerializer
 
 fun Application.initRoute() {
     install(CORS){

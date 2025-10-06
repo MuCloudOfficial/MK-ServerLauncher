@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFile
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFolder
-import me.mucloud.application.mk.serverlauncher.common.utils.log
+import me.mucloud.application.mk.serverlauncher.common.utils.CORE_LOGGER
 import net.mamoe.yamlkt.Comment
 import net.mamoe.yamlkt.Yaml
 
@@ -41,7 +41,7 @@ data class Configuration(
 
     fun save(){
         File(ConfigurationFolder, ConfigurationFile).writeText(Yaml.encodeToString(this))
-        log.info("MKSL Configuration File Saved.")
+        CORE_LOGGER.info("MKSL Configuration File Saved.")
     }
 
 }
@@ -58,7 +58,7 @@ object ConfigurationFactory{
         firstCreate =
             File(ConfigurationFolder).absoluteFile.mkdirs() ||
                     File(ConfigurationFolder, ConfigurationFile).absoluteFile.createNewFile()
-        if(firstCreate) log.warn("MK-ServerLauncher Configuration Module may first Launch, MKSL Configuration File Created.")
+        if(firstCreate) CORE_LOGGER.warn("MK-ServerLauncher Configuration Module may first Launch, MKSL Configuration File Created.")
     }
 
     fun getConfiguration(): Configuration{

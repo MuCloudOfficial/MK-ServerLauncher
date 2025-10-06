@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version libs.versions.kotlin
+    kotlin("jvm")
     id("io.ktor.plugin") version libs.versions.ktor
     alias(libs.plugins.kotlin.serialization)
 }
@@ -21,10 +21,10 @@ repositories {
 
 dependencies {
     implementation(project(":Common"))
-    implementation(libs.bundles.ktor.pack)
-    implementation(libs.bundles.gson.pack)
+    implementation(libs.bundles.ktor)
+    implementation(libs.bundles.gson)
 
     implementation("ch.qos.logback:logback-classic:1.5.13")
     testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation(libs.kotlin.testJunit)
+    testImplementation(libs.bundles.testPack)
 }

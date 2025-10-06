@@ -2,7 +2,9 @@
 
 [versions]
 kotlin = "2.1.21"
-ktor = "3.2.0"
+ktor = "3.3.0"
+
+exposed = "1.0.0-rc-1"
 
 androidx-lifecycle = "2.9.0"
 composeHotReload = "1.0.0-alpha10"
@@ -28,20 +30,27 @@ ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor"
 ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-server-jte = { module = "io.ktor:ktor-server-jte", version.ref = "ktor" }
+jte-kotlin = { module = "gg.jte:jte-kotlin", version = "3.2.1" }
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version = "1.8.1" }
 
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+jdbc-sqlite = { module = "org.xerial:sqlite-jdbc", version = "3.50.3.0" }
+hikari-cp = { module = "com.zaxxer:HikariCP", version = "4.0.3" }
+
 [bundles]
-gson-pack = ["gson", "gson-extras"]
-ktor-pack = [
+gson = ["gson", "gson-extras"]
+ktor = [
     "ktor-server-core",
     "ktor-server-auth",
     "ktor-server-host-common",
@@ -52,8 +61,23 @@ ktor-pack = [
     "ktor-server-config-yaml",
     "ktor-server-request-validation",
     "ktor-server-cors",
+    "ktor-server-jte",
+    "jte-kotlin",
     "ktor-serialization-gson",
     "ktor-serialization-kotlinx-json",
+]
+
+exposed = [
+    "exposed-core",
+    "exposed-dao",
+    "exposed-jdbc"
+]
+
+hikari-sqlite = [ "hikari-cp", "jdbc-sqlite" ]
+
+testPack = [
+    "kotlin-test",
+    "junit"
 ]
 
 [plugins]

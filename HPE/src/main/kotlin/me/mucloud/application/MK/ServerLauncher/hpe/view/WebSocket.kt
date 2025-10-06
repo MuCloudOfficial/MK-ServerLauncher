@@ -14,7 +14,7 @@ import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.launch
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
+import me.mucloud.application.mk.serverlauncher.common.api.core.server.ServerPool
 import me.mucloud.application.mk.serverlauncher.hpe.utils.log
 import me.mucloud.application.mk.serverlauncher.common.external.monitor.SystemMonitor
 

@@ -9,6 +9,9 @@ export const getEnvs = () => { apiClient.get("/api/v1/env/list").then(res => {
 })}
 // END > Shared
 
-let MuEnv: {
-
+export interface MuEnv{
+    EV_NAME: string,
+    EV_VER: string,
+    EV_VER_CODE: number,
+    EV_EXEC: string
 }
