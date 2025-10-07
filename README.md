@@ -26,3 +26,7 @@
 <div align="center">
 <a href="https://mucloudofficial.github.io/MuCloudProjectDoc/mksl-main.html">&gt;&gt;&gt; 项目文档 &lt;&lt;&lt;</a>
 </div>
+
+---
+## 关于该项目的后续路线
+基于当前的开发进度 ~其实是我脑死了~ ，MK-ServerLauncher 将分线进行，master 分支仅对于 Minecraft Dedicated Server 进行开发，同时项目将产生新分支 GenericPlatform_V1 用于将其通用化以使其支持更多其他游戏的 Dedicated Server
