@@ -27,9 +27,6 @@ fun Application.initServerRoute() {
             get("availableType") {
                 call.respond(ServerPool.getAvailableTypes())
             }
-            get("jvmFlagTemplates") {
-                call.respond("")
-            }
             get("list") {
                 call.respond(ServerPool.getServerList())
             }
@@ -74,21 +71,7 @@ fun Application.initServerRoute() {
                                     EnvPool.getEnv(j["env"].asString)!! as JavaEnvironment,
                                     j["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }
                                         .toMutableList()
-                                ).apply {
-                                    getConfig().apply {
-                                        set("jvmFlagTemplate", j["jvm_flag_template"].asString)
-                                        set("anotherJVMFlags", j["jvm_aflags"].asString)
-                                        set("maxPlayer", j["max_player"].asInt)
-                                        set("minimumAllocatedMemory", j["minimum_mem"].asInt)
-                                        set("maximumAllocatedMemory", j["maximum_mem"].asInt)
-                                        set("isOnline", j["online"].asBoolean)
-                                        set("isWhileListed", j["whitelist"].asBoolean)
-                                        set("spawnProtectRange", j["spawn_protect"].asInt)
-                                        set("viewDistance", j["view_distance"].asInt)
-                                        set("allowGUI", j["allow_gui"].asBoolean)
-                                        set("allowNether", j["allow_nether"].asBoolean)
-                                    }
-                                }
+                                )
                             )
                         } catch (e: Exception) {
                             call.respond(HttpStatusCode.BadRequest, e.toString())
@@ -138,7 +121,6 @@ fun Application.initServerRoute() {
                         }
 
                         val targetFolder = File(targetPath).parentFile
-                        val targetConf = File(targetFolder, "server.properties")
                         ServerPool.addServer(
                             MCJEServer(
                                 target, version, ServerPool.getType(type),
@@ -148,17 +130,6 @@ fun Application.initServerRoute() {
                                 r["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }
                                     .toMutableList()
                             ).apply {
-                                if (targetConf.exists()) {
-                                    Properties().apply {
-                                        load(targetConf.reader())
-                                        getConfig().set("allowNether", getProperty("allow-nether").toBoolean())
-                                        getConfig().set("isWhileListed", getProperty("white-list").toBoolean())
-                                        getConfig().set("isOnline", getProperty("online-mode").toBoolean())
-                                        getConfig().set("maxPlayer", getProperty("max-players").toInt())
-                                        getConfig().set("viewDistance", getProperty("view-distance").toInt())
-                                        getConfig().set("spawnProtectRange", getProperty("spawn-protection").toInt())
-                                    }
-                                }
                                 setFolder(targetFolder)
                                 saveToFile()
                             })

@@ -1,8 +1,7 @@
 import axios from "axios";
-import {getServers} from "@api/MuServer.ts";
-import {getEnvs} from "@api/MuEnv.ts";
 
 const backend = document.URL.split(new RegExp("/+"))[1]
+
 export const apiClient = axios.create({
     baseURL: `${document.URL.split(new RegExp("/+"))[0]}//${backend.split(":")[0]}:20038`, //TODO: Product版更改
     allowAbsoluteUrls: true,
@@ -67,6 +66,3 @@ export class MuWebSocket {
         }
     }
 }
-
-getServers()
-getEnvs()

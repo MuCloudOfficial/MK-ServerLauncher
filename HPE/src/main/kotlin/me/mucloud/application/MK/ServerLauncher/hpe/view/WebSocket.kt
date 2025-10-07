@@ -1,22 +1,16 @@
 package me.mucloud.application.mk.serverlauncher.hpe.view
 
 import com.google.gson.Gson
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.gson.GsonWebsocketContentConverter
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.response.respond
-import io.ktor.server.routing.routing
-import io.ktor.server.websocket.WebSockets
-import io.ktor.server.websocket.pingPeriod
-import io.ktor.server.websocket.sendSerialized
-import io.ktor.server.websocket.timeout
-import io.ktor.server.websocket.webSocket
-import kotlin.time.Duration.Companion.seconds
+import io.ktor.http.*
+import io.ktor.serialization.gson.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import kotlinx.coroutines.launch
+import me.mucloud.application.mk.serverlauncher.common.external.SystemMonitor
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
-import me.mucloud.application.mk.serverlauncher.hpe.utils.log
-import me.mucloud.application.mk.serverlauncher.common.external.monitor.SystemMonitor
+import kotlin.time.Duration.Companion.seconds
 
 fun Application.initWebSocket() {
     install(WebSockets) {

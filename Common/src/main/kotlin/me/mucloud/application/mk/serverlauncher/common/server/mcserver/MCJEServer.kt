@@ -9,7 +9,6 @@ import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.annotations.SerializedName
 import java.io.File
-import java.io.FileReader
 import java.io.FileWriter
 import java.lang.reflect.Type
 import java.nio.charset.StandardCharsets
@@ -21,6 +20,7 @@ import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
 import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
+import java.nio.charset.StandardCharsets.UTF_8
 
 /**
  * MC Java Edition Server.
@@ -33,7 +33,7 @@ import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
 data class MCJEServer(
     private var name: String,
     private val version: String,
-    private var type: ServerType,
+    private var type: MCJEServerType,
     private var desc: String,
     private var port: Int = 25565,
     private var env: JavaEnvironment,
@@ -43,9 +43,8 @@ data class MCJEServer(
     private var running: Boolean = false
     private val totalFailCount: Int = 0
     private val totalPassCount: Int = 0
-    private val config: Config = Config()
-
-    private val serverFlow = MutableSharedFlow<JsonObject>()
+    private val config: MCJEServerConfig = MCJEServerConfig(this)
+    private val dataFlow = MutableSharedFlow<JsonObject>()
 
     init{
         if(!location.exists()){
@@ -57,19 +56,14 @@ data class MCJEServer(
 
     }
 
-    fun regBeforeWork(work: String){
-        beforeWork.add(work)
-    }
-
-    fun regBeforeWork(vararg work: String){
-        beforeWork.addAll(work)
-    }
+    fun regBeforeWork(work: String) = beforeWork.add(work)
+    fun regBeforeWork(vararg work: String) = beforeWork.addAll(work)
 
     fun runBeforeWorks(): Int{
         beforeWork.forEach { be ->
             try {
                 Runtime.getRuntime().exec(be).errorStream.bufferedReader().forEachLine { l ->
-                    runBlocking { serverFlow.emit(JsonObject().also { j ->
+                    runBlocking { dataFlow.emit(JsonObject().also { j ->
                         j.addProperty("type", "console.out:before_work")
                         j.add("data", JsonObject().also { data ->
                             data.addProperty("index", beforeWork.indexOf(be))
@@ -86,9 +80,16 @@ data class MCJEServer(
     }
 
     fun start() {
-        runBeforeWorks()
-        //TODO("Launch MC SERVER Command")
         running = true
+        runBeforeWorks()
+        Runtime.getRuntime().exec("").errorStream.bufferedReader(UTF_8).forEachLine { l ->
+           runBlocking {
+               dataFlow.emit(JsonObject().apply {
+                   addProperty("type", "console.out:info")
+                   addProperty("msg", l)
+               })
+           }
+        }
     }
 
     fun stop() {
@@ -121,14 +122,14 @@ data class MCJEServer(
 
     fun getVersion(): String = version
 
-    fun getType(): ServerType = type
+    fun getType(): MCJEServerType = type
 
     fun getEnv(): JavaEnvironment = env
     fun setEnv(env: JavaEnvironment) { this.env = env }
 
     fun lastLaunchTime(): LocalDateTime = LocalDateTime.now() //todo
 
-    fun getConfig(): Config = config
+    fun getConfig(): MCJEServerConfig = MCJEServerConfig(this)
     fun getBeforeWorks(): List<String> = beforeWork
 
     fun saveToFile(){
@@ -138,7 +139,7 @@ data class MCJEServer(
         }
     }
 
-    fun getServerFlow() = serverFlow
+    fun getServerFlow() = dataFlow
 
     fun sendCommand(cmd: String){
         TODO("Implementation in iLoveMu")
@@ -147,24 +148,20 @@ data class MCJEServer(
     fun sendMsg(msg: String){
         TODO("Implementation in iLoveMu")
     }
+}
 
-    inner class Config{
-        val configFile: File = File(getFolder(), "server.properties")
-        val anotherConfig = mutableMapOf<String, Any>()
-        val properties: Properties = Properties().apply {
-            load(FileReader(configFile))
-        }
+/**
+ * # | MCJEServerConfig
+ */
+class MCJEServerConfig(
+    server: MCJEServer
+){
+    private val rawServerPropertiesFile: File = server.getFolder().resolve("server.properties")
+    private val rawServerProperties: Properties = Properties().apply { load(rawServerPropertiesFile.reader(StandardCharsets.UTF_8)) }
 
-        fun get(key: String): Any = properties.getProperty(key)
-
-        fun set(key: String, newValue: Any){
-            properties.setProperty(key, newValue.toString())
-        }
-
-        fun del(key: String){
-            anotherConfig.remove(key)
-        }
-    }
+    fun setProperty(key: String, value: String) = rawServerProperties.setProperty(key, value)
+    fun delProperty(key: String) = rawServerProperties.remove(key)
+    fun save() = rawServerProperties.store(rawServerPropertiesFile.writer(StandardCharsets.UTF_8), null)
 }
 
 object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServer>{
@@ -179,7 +176,7 @@ object MCJEServerAdapter: JsonSerializer<MCJEServer>, JsonDeserializer<MCJEServe
             addProperty("version", s.getVersion())
             addProperty("type", s.getType().id)
             addProperty("port", s.getPort())
-            addProperty("env", s.getEnv().name)
+            addProperty("env", s.getEnv().getName())
             add("before_works", c.serialize(s.getBeforeWorks()))
             addProperty("location", s.getFolder().absolutePath)
         }

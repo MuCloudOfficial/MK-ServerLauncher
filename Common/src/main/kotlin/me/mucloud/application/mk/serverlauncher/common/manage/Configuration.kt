@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFile
 import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory.ConfigurationFolder
-import me.mucloud.application.mk.serverlauncher.common.utils.log
+import me.mucloud.application.mk.serverlauncher.common.external.log
 import net.mamoe.yamlkt.Comment
 import net.mamoe.yamlkt.Yaml
 

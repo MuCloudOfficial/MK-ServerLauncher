@@ -8,7 +8,7 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServer
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerAdapter
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerType
+import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerType
 import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerTypeSerializer
 
 fun Application.initRoute() {
@@ -27,7 +27,7 @@ fun Application.initRoute() {
         gson{
             setPrettyPrinting()
             registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter)
-            registerTypeAdapter(ServerType::class.java, ServerTypeSerializer)
+            registerTypeAdapter(MCJEServerType::class.java, ServerTypeSerializer)
         }
     }
 

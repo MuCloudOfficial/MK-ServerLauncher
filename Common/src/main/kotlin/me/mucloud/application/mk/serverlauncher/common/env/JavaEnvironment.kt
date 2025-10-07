@@ -1,10 +1,9 @@
 package me.mucloud.application.mk.serverlauncher.common.env
 
+import kotlinx.serialization.Serializable
+import me.mucloud.application.mk.serverlauncher.common.server.mcserver.JavaVersion
 import java.io.File
 import java.io.FileReader
-import kotlinx.serialization.Serializable
-import me.mucloud.application.mk.serverlauncher.common.api.MuEnvironment
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.JavaVersion
 
 /**
  * Java Environment
@@ -13,16 +12,18 @@ import me.mucloud.application.mk.serverlauncher.common.server.mcserver.JavaVersi
  *
  * @since DEV.1
  * @author Mu_Cloud
+ * @param name JavaEnvironment Name
+ * @param path Java Installation Folder (like %JAVA_HOME% Folder)
  */
 @Serializable
 data class JavaEnvironment(
-    val name: String,
-    val path: String
-): MuEnvironment{
-    var version: String = "Unknown"
+    private val name: String,
+    private val path: String,
+){
+    private lateinit var version: String
 
     init {
-        val position = File(path).parentFile.parentFile
+        val position = File(path)
         if(position.exists() && position.isDirectory){
             val verFile = File(position, "release")
             FileReader(verFile).useLines { l ->
@@ -33,11 +34,8 @@ data class JavaEnvironment(
         }
     }
 
-    override fun getName(): String  = name
-
-    override fun getVersionString(): String = version
-
-    override fun getVersion(): Int = JavaVersion.get(this).code
-
-    override fun getExecFile(): File = File(path)
+    fun getName(): String  = name
+    fun getVersionString(): String = version
+    fun getVersion(): Int = JavaVersion.get(this).code
+    fun getExecFile(): File = File(path).resolve("bin/java.exe")
 }

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {MuWebSocket} from "@shared/shared.ts";
+import {MuWebSocket} from "@api/MuCoreConnector";
 import {onMounted, ref} from "vue";
 import type {TabPaneName} from "element-plus";
 import {useRouter} from "vue-router";
-import {usingServers} from "@api/MuServer.ts";
+import {usingServers} from "@api/MuServer";
 
 const router = useRouter()
 const props = defineProps({name: String})

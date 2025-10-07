@@ -1,5 +1,5 @@
 import {ref} from "vue";
-import {apiClient} from "@shared/shared.ts";
+import {apiClient} from "@api/MuCoreConnector";
 import {useStorage} from "@vueuse/core";
 
 // START > Shared
@@ -11,10 +11,4 @@ export const getServers = () => { apiClient.get("/api/v1/server/list").then(res 
 
 export let usingServers = useStorage<Array<string>>('using-servers', [])
 // END > Shared
-
-let MuServer: {
-    server_name: string,
-    port: number,
-
-}
 
