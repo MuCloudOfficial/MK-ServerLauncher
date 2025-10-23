@@ -1,41 +1,82 @@
 package me.mucloud.application.mk.serverlauncher.common.env
 
-import kotlinx.serialization.Serializable
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.JavaVersion
+import me.mucloud.application.mk.serverlauncher.common.server.JavaVersion
 import java.io.File
 import java.io.FileReader
 
 /**
- * Java Environment
+ * # | MuExtension - MCJEServer
  *
- * MuPack Internal Environment Template
+ * ## Java Environment
  *
  * @since DEV.1
  * @author Mu_Cloud
  * @param name JavaEnvironment Name
  * @param path Java Installation Folder (like %JAVA_HOME% Folder)
  */
-@Serializable
 data class JavaEnvironment(
     private val name: String,
     private val path: String,
 ){
-    private lateinit var version: String
 
-    init {
-        val position = File(path)
-        if(position.exists() && position.isDirectory){
-            val verFile = File(position, "release")
-            FileReader(verFile).useLines { l ->
-                l.find { it.startsWith("JAVA_VERSION=") }?.let {
-                    version = it.split("=")[1].trim().substring(1).dropLast(1)
-                }
-            }
+    // Java Distribution Name
+    val distributionName: String
+        get() = getReleaseProperty("IMPLEMENTOR_VERSION") ?: "Unknown"
+
+    // Java Version
+    private val version: String
+        get() = getReleaseProperty("JAVA_VERSION") ?: "Unknown"
+
+    /**
+     * Get the Content of File named "RELEASE" in the Java Installation Folder
+     *
+     * @return The File Content as Map
+     */
+    private fun getReleaseFileContent(): Map<String, String>{
+        val releaseFile = File(path).resolve("release")
+        val map = mutableMapOf<String, String>()
+        if(!releaseFile.exists()) return map
+        FileReader(releaseFile).useLines { l ->
+            val split = l.toString().split("=")
+            map.put(split[0], split[1])
         }
+        return map
     }
 
+    /**
+     * Get the Value of the [getReleaseFileContent] Map by [property] Key
+     *
+     * @param property Key in Java RELEASE File
+     * @return value of the Java RELEASE File
+     */
+    private fun getReleaseProperty(property: String): String? = getReleaseFileContent()[property]
+
+    /**
+     * Get the Name of JavaEnvironment
+     *
+     * @return the name of this JavaEnvironment
+     */
     fun getName(): String  = name
+
+    /**
+     * Get the Version of JavaEnvironment
+     *
+     * @return the version of JavaEnvironment as [String]
+     */
     fun getVersionString(): String = version
-    fun getVersion(): Int = JavaVersion.get(this).code
-    fun getExecFile(): File = File(path).resolve("bin/java.exe")
+
+    /**
+     * Get the Version of JavaEnvironment
+     *
+     * @return the version of JavaEnvironment as [JavaVersion]
+     */
+    fun getVersion(): JavaVersion = JavaVersion.get(this)
+
+
+    /**
+     * Get the Executable File
+     *
+     * @return The executable file of JavaEnvironment, which usually refers to the "java.exe" file
+     */
+    fun getExecFolder(): File = File(path)
 }
