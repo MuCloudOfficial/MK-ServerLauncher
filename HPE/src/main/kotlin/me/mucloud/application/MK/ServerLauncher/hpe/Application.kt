@@ -1,37 +1,23 @@
 package me.mucloud.application.mk.serverlauncher.hpe
 
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.http.content.ignoreFiles
-import io.ktor.server.http.content.singlePageApplication
-import io.ktor.server.netty.EngineMain
-import io.ktor.server.routing.routing
-import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
-import me.mucloud.application.mk.serverlauncher.common.manage.ConfigurationFactory
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
-import me.mucloud.application.mk.serverlauncher.common.external.SystemMonitor
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
+import io.ktor.server.netty.*
+import io.ktor.server.routing.*
+import me.mucloud.application.mk.serverlauncher.common.MuCore
+import me.mucloud.application.mk.serverlauncher.common.MuCoreMini
 import me.mucloud.application.mk.serverlauncher.hpe.view.initRoute
 import me.mucloud.application.mk.serverlauncher.hpe.view.initWebSocket
 
-fun main(args: Array<String>) {
-    EngineMain.main(args)
+var MuCore: MuCore = MuCoreMini()
+    private set
+
+fun main() {
+    embeddedServer(Netty, port = MuCore.getMuCoreConfig().getMuCorePort(), module = Application::module).start(wait = true)
 }
 
 fun Application.module() {
-    monitor.subscribe(ApplicationStarted){
-        SystemMonitor.initMonitor(1)
-        ConfigurationFactory.getConfiguration()
-        EnvPool.scanEnv()
-        ServerPool.scanServer()
-    }
-
-    monitor.subscribe(ApplicationStopped){
-        SystemMonitor.close()
-        EnvPool.save()
-        ServerPool.saveServers()
-    }
-
     initRoute()
     initWebSocket()
     routing {

@@ -1,6 +1,0 @@
-ktor:
-  application:
-    modules:
-      - me.mucloud.application.mk.serverlauncher.hpe.ApplicationKt.module
-  deployment:
-    port: 20038
