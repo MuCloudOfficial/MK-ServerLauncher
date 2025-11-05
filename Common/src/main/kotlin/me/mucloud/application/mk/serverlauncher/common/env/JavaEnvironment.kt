@@ -15,17 +15,15 @@ import java.io.FileReader
  * @param path Java Installation Folder (like %JAVA_HOME% Folder)
  */
 data class JavaEnvironment(
-    private val name: String,
-    private val path: String,
+    val name: String,
+    val path: String,
 ){
 
     // Java Distribution Name
-    val distributionName: String
-        get() = getReleaseProperty("IMPLEMENTOR_VERSION") ?: "Unknown"
+    val distributionName: String = getReleaseProperty("IMPLEMENTOR_VERSION") ?: "Unknown"
 
     // Java Version
-    private val version: String
-        get() = getReleaseProperty("JAVA_VERSION") ?: "Unknown"
+    val version: String = getReleaseProperty("JAVA_VERSION") ?: "Unknown"
 
     /**
      * Get the Content of File named "RELEASE" in the Java Installation Folder
@@ -79,4 +77,6 @@ data class JavaEnvironment(
      * @return The executable file of JavaEnvironment, which usually refers to the "java.exe" file
      */
     fun getExecFolder(): File = File(path)
+
+    fun getAbsoluteExecPath(): String = getExecFolder().resolve("bin/java.exe").absolutePath
 }
