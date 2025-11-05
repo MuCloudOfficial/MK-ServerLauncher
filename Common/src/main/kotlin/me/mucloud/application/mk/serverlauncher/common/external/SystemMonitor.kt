@@ -1,46 +1,52 @@
 package me.mucloud.application.mk.serverlauncher.common.external
 
 import com.sun.management.OperatingSystemMXBean
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.mucloud.application.mk.serverlauncher.common.MuCoreMini
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
 import java.lang.management.ManagementFactory
 import java.util.*
 import kotlin.concurrent.schedule
 
-object SystemMonitor {
+class SystemMonitor(
+    private val core: MuCoreMini
+) {
 
-    private var Interval: Int = 3 // Seconds
+    private var Interval: Int = core.getMuCoreConfig().getSystemMonitorInterval() // Seconds
     private lateinit var Tsk: TimerTask
-    private lateinit var MonitorFlow: MutableSharedFlow<StatusPacket>
+    private var MonitorFlow: MutableStateFlow<StatusPacket> = MutableStateFlow(getCurrentStatus())
 
-    fun initMonitor(interval: Int){ Interval = interval
-        MonitorFlow = MutableSharedFlow()
-        runBlocking {
-            Tsk = async { Timer().schedule(0L, Interval * 1000L){
-                val os = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
-                val cpuUsage = os.cpuLoad * 100
-                val memoryUsage = ((os.totalMemorySize - os.freeMemorySize).toDouble() / os.totalMemorySize) *100
+    private fun getCurrentStatus(): StatusPacket {
+        val os = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
+        val cpuUsage = os.cpuLoad * 100
+        val memoryUsage = ((os.totalMemorySize - os.freeMemorySize).toDouble() / os.totalMemorySize) *100
+        val serverPool = core.getServerPool()
+        val coreInfo = core.getMuCoreInfo()
 
-                runBlocking {
-                    MonitorFlow.emit(StatusPacket(
-                        SystemStatus(cpuUsage, memoryUsage),
-                        ServerStatus(ServerPool.getTotalServer(), ServerPool.getOnlineServerCount(), ServerPool.getOfflineServerCount()),
-                        MuCoreMini.getMuCoreInfo()
-                    ))
+        return StatusPacket(
+            SystemStatus(cpuUsage, memoryUsage),
+            ServerStatus(serverPool.getTotalServer(), serverPool.getOnlineServerCount(), serverPool.getOfflineServerCount()),
+            coreInfo
+        )
+    }
+
+    fun initMonitor(){
+        CoroutineScope(Dispatchers.IO).launch {
+            Tsk = async {
+                Timer().schedule(0L, Interval * 1000L) {
+                    launch { MonitorFlow.emit(getCurrentStatus()) }
                 }
-            }}.await()
+            }.await()
         }
     }
 
-    fun getStatus(): SharedFlow<StatusPacket> {
-        return MonitorFlow.asSharedFlow()
-    }
+    fun getStatus(): StateFlow<StatusPacket> = MonitorFlow.asStateFlow()
 
     fun close(){
         Tsk.cancel()
