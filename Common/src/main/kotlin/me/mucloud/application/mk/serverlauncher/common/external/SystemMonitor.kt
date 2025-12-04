@@ -10,15 +10,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import me.mucloud.application.mk.serverlauncher.common.MuCoreMini
+import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
 import java.lang.management.ManagementFactory
 import java.util.*
 import kotlin.concurrent.schedule
 
-class SystemMonitor(
-    private val core: MuCoreMini
-) {
+object SystemMonitor{
 
-    private var Interval: Int = core.getMuCoreConfig().getSystemMonitorInterval() // Seconds
+    private var Interval: Int = MuCoreMini.getMuCoreConfig().getSystemMonitorInterval() // Seconds
     private lateinit var Tsk: TimerTask
     private var MonitorFlow: MutableStateFlow<StatusPacket> = MutableStateFlow(getCurrentStatus())
 
@@ -26,8 +25,8 @@ class SystemMonitor(
         val os = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
         val cpuUsage = os.cpuLoad * 100
         val memoryUsage = ((os.totalMemorySize - os.freeMemorySize).toDouble() / os.totalMemorySize) *100
-        val serverPool = core.getServerPool()
-        val coreInfo = core.getMuCoreInfo()
+        val serverPool = ServerPool
+        val coreInfo = MuCoreMini.getMuCoreInfo()
 
         return StatusPacket(
             SystemStatus(cpuUsage, memoryUsage),
@@ -55,26 +54,26 @@ class SystemMonitor(
 
 @Serializable
 data class StatusPacket(
-    private val systemStatus: SystemStatus,
-    private val serverStatus: ServerStatus,
-    private val appInfoStatus: AppInfoStatus
+    val systemStatus: SystemStatus,
+    val serverStatus: ServerStatus,
+    val appInfoStatus: AppInfoStatus
 )
 
 @Serializable
 data class SystemStatus(
-    private val CpuUsage: Double,
-    private val MemUsage: Double,
+    val CpuUsage: Double,
+    val MemUsage: Double,
 )
 
 @Serializable
 data class ServerStatus(
-    private val totalServer: Int,
-    private val onlineServer: Int,
-    private val offlineServer: Int,
+    val totalServer: Int,
+    val onlineServer: Int,
+    val offlineServer: Int,
 )
 
 @Serializable
 data class AppInfoStatus(
-    private val core: String,
-    private val ver: String,
+    val core: String,
+    val ver: String,
 )
