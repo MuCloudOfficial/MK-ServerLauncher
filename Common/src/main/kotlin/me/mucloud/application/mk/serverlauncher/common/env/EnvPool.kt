@@ -8,7 +8,7 @@ import java.io.FileReader
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
 
-class EnvPool {
+object EnvPool {
 
     // Java Envs
     private val jEnvs: MutableList<JavaEnvironment> = mutableListOf()
@@ -62,14 +62,14 @@ class EnvPool {
         }
     }
 
-    fun getEnv(name: String) = jEnvs.find { it.getName() == name }
+    fun getEnv(name: String) = jEnvs.find { it.name == name }
 
     fun delEnv(envName: String): Boolean{
-        return jEnvs.removeIf { it.getName() == envName }.also{ save() }
+        return jEnvs.removeIf { it.name == envName }.also{ save() }
     }
 
     fun regEnv(env: JavaEnvironment){
-        jEnvs.find { it.getName() == env.getName() || it.getExecFolder() == env.getExecFolder() } ?: {
+        jEnvs.find { it.name == env.name || it.getExecFolder() == env.getExecFolder() } ?: {
             jEnvs.add(env)
             save()
         }

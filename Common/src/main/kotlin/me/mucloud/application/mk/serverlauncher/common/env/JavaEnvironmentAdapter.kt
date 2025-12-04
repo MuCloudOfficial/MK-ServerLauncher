@@ -13,8 +13,8 @@ object JavaEnvironmentAdapter: JsonSerializer<JavaEnvironment>{
 
     override fun serialize(s: JavaEnvironment, t: Type, c: JsonSerializationContext): JsonElement  =
         JsonObject().apply{
-            addProperty("EV_NAME", s.getName())
-            addProperty("EV_VER", "${s.distributionName}_${s.getVersionString()}")
+            addProperty("EV_NAME", s.name)
+            addProperty("EV_VER", s.getVersionString())
             addProperty("EV_CODE", s.getVersion().code)
             addProperty("EV_LOC", s.getExecFolder().absolutePath)
         }

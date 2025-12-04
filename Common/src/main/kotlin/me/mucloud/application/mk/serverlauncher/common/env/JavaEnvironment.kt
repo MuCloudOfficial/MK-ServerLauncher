@@ -1,6 +1,5 @@
 package me.mucloud.application.mk.serverlauncher.common.env
 
-import me.mucloud.application.mk.serverlauncher.common.server.JavaVersion
 import java.io.File
 import java.io.FileReader
 
@@ -11,19 +10,20 @@ import java.io.FileReader
  *
  * @since DEV.1
  * @author Mu_Cloud
- * @param name JavaEnvironment Name
+ * @param evid JavaEnvironment Name
  * @param path Java Installation Folder (like %JAVA_HOME% Folder)
  */
-data class JavaEnvironment(
+class JavaEnvironment(
     val name: String,
     val path: String,
 ){
 
-    // Java Distribution Name
-    val distributionName: String = getReleaseProperty("IMPLEMENTOR_VERSION") ?: "Unknown"
+    private val distributionVer: String
 
-    // Java Version
-    val version: String = getReleaseProperty("JAVA_VERSION") ?: "Unknown"
+    init{
+        val map = getReleaseFileContent()
+        distributionVer = "${map["JAVA_VERSION"] ?: "Unknown"}(${map["IMPLEMENTOR_VERSION"] ?: "Unknown"})"
+    }
 
     /**
      * Get the Content of File named "RELEASE" in the Java Installation Folder
@@ -42,26 +42,11 @@ data class JavaEnvironment(
     }
 
     /**
-     * Get the Value of the [getReleaseFileContent] Map by [property] Key
-     *
-     * @param property Key in Java RELEASE File
-     * @return value of the Java RELEASE File
-     */
-    private fun getReleaseProperty(property: String): String? = getReleaseFileContent()[property]
-
-    /**
-     * Get the Name of JavaEnvironment
-     *
-     * @return the name of this JavaEnvironment
-     */
-    fun getName(): String  = name
-
-    /**
      * Get the Version of JavaEnvironment
      *
      * @return the version of JavaEnvironment as [String]
      */
-    fun getVersionString(): String = version
+    fun getVersionString(): String = distributionVer
 
     /**
      * Get the Version of JavaEnvironment
