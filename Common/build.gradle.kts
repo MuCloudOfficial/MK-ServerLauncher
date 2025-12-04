@@ -7,13 +7,15 @@ group = "me.mucloud"
 version = "1.0"
 
 dependencies {
+    implementation(kotlin("reflect"))
+
     implementation(libs.bundles.gson.pack)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.coroutinesSwing)
-    implementation(libs.yamlkt)
     implementation(libs.netty.all)
     implementation(libs.okHttp)
-    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation(libs.nightconfig)
+    implementation(libs.slf4jAPI)
 
     testImplementation(libs.kotlin.testJunit)
 }

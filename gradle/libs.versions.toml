@@ -14,9 +14,11 @@ kotlinx-coroutines = "1.10.2"
 gson = { module = "com.google.code.gson:gson", version = "2.13.1" }
 gson-extras = { module = "org.danilopianini:gson-extras", version = "3.3.0" }
 
-netty-all = { module = "io.netty:netty-all", version = "4.2.2.Final" }
-yamlkt = { module = "net.mamoe.yamlkt:yamlkt-jvm", version = "0.13.0" }
+netty-all = { module = "io.netty:netty-all", version = "4.2.5.Final" }
 okHttp = { module = "com.squareup.okhttp3:okhttp", version = "5.1.0" }
+nightconfig = { module = "com.electronwill.night-config:yaml", version = "3.6.0" }
+
+slf4jAPI = { module = "org.slf4j:slf4j-api", version = "2.0.17" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
@@ -28,6 +30,8 @@ ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor"
 ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktor" }
+
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version = "1.8.1" }
@@ -52,6 +56,7 @@ ktor-pack = [
     "ktor-server-config-yaml",
     "ktor-server-request-validation",
     "ktor-server-cors",
+    "ktor-server-sessions",
     "ktor-serialization-gson",
     "ktor-serialization-kotlinx-json",
 ]
