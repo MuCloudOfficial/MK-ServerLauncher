@@ -2,28 +2,22 @@ package me.mucloud.application.mk.serverlauncher.hpe.view
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
-import java.io.File
-import java.util.Properties
-import java.util.jar.JarFile
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
-import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
+import me.mucloud.application.mk.serverlauncher.common.server.MCJEServer
 import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool.delete
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool.remove
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServer
+import java.io.File
+import java.util.*
+import java.util.jar.JarFile
 
 fun Application.initServerRoute() {
     routing {
         route("api/v1/server") {
-            // RESTful API | Servers
+            val sp = ServerPool
             get("availableType") {
                 call.respond(ServerPool.getAvailableTypes())
             }
@@ -31,15 +25,14 @@ fun Application.initServerRoute() {
                 call.respond(ServerPool.getServerList())
             }
             get("delete/{name}") {
-                (ServerPool.getServer(
-                    call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-                ) ?: return@get call.respond(HttpStatusCode.BadRequest)).delete()
-                call.respond(HttpStatusCode.OK)
+                if (!sp.delServer(
+                        call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Server Name Undefined"))
+                    ) call.respond(HttpStatusCode.BadRequest, "Server Not Found") else call.respond(HttpStatusCode.OK)
             }
             get("remove/{name}") {
-                (ServerPool.getServer(
+                ServerPool.removeServer(
                     call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest)
-                ) ?: return@get call.respond(HttpStatusCode.BadRequest)).remove()
+                )
                 call.respond(HttpStatusCode.OK)
             }
             get("start/{name}") {
@@ -57,28 +50,20 @@ fun Application.initServerRoute() {
 
             post("create") {
                 call.receive<JsonObject>().also { j ->
-                    if (ServerPool.getServer(j["name"].asString) != null) {
-                        call.respond(HttpStatusCode.BadRequest)
-                    } else {
-                        try {
-                            ServerPool.addServer(
-                                MCJEServer(
-                                    j["name"].asString,
-                                    j["version"].asString,
-                                    ServerPool.getType(j["type"].asString),
-                                    j["desc"].asString,
-                                    j["port"].asInt,
-                                    EnvPool.getEnv(j["env"].asString)!! as JavaEnvironment,
-                                    j["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }
-                                        .toMutableList()
-                                )
-                            )
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.BadRequest, e.toString())
-                            e.printStackTrace()
-                        }
-                        call.respond(HttpStatusCode.OK)
+                    try {
+                        MCJEServer(
+                            j["name"].asString,
+                            j["version"].asString,
+                            ServerPool.getType(j["type"].asString),
+                            j["desc"].asString,
+                            j["port"].asInt,
+                            EnvPool.getEnv(j["env"].asString)!!
+                        )
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.BadRequest, e.toString())
+                        e.printStackTrace()
                     }
+                    call.respond(HttpStatusCode.OK)
                 }
             }
 
@@ -120,19 +105,14 @@ fun Application.initServerRoute() {
                             }
                         }
 
-                        val targetFolder = File(targetPath).parentFile
-                        ServerPool.addServer(
-                            MCJEServer(
-                                target, version, ServerPool.getType(type),
-                                r["desc"].asString,
-                                r["port"].asInt,
-                                EnvPool.getEnv(r["env"].asString)!! as JavaEnvironment,
-                                r["before_works"].asJsonArray.map { i -> return@map (i.asJsonObject)["value"].asString }
-                                    .toMutableList()
-                            ).apply {
-                                setFolder(targetFolder)
-                                saveToFile()
-                            })
+                        MCJEServer(
+                            target, version, ServerPool.getType(type),
+                            r["desc"].asString,
+                            r["port"].asInt,
+                            EnvPool.getEnv(r["env"].asString)!!
+                        ).apply {
+                            save()
+                        }
                         call.respond(HttpStatusCode.OK)
                     } catch (e: Exception) {
                         call.respond(HttpStatusCode.BadRequest, e.toString())

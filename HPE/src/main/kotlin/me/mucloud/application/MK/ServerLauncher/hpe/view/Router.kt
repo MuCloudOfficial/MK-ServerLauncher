@@ -1,15 +1,10 @@
 package me.mucloud.application.mk.serverlauncher.hpe.view
 
-import io.ktor.http.HttpMethod
-import io.ktor.serialization.gson.gson
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.cors.routing.CORS
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServer
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerAdapter
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.MCJEServerType
-import me.mucloud.application.mk.serverlauncher.common.server.mcserver.ServerTypeSerializer
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
+import me.mucloud.application.mk.serverlauncher.hpe.gson
 
 fun Application.initRoute() {
     install(CORS){
@@ -18,20 +13,11 @@ fun Application.initRoute() {
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Options)
         allowSameOrigin = true
-        allowHeaders {
-            it.equals("Content-Type", true)
-        }
+        allowHeader("Content-Type")
         allowNonSimpleContentTypes = true
     }
-    install(ContentNegotiation) {
-        gson{
-            setPrettyPrinting()
-            registerTypeAdapter(MCJEServer::class.java, MCJEServerAdapter)
-            registerTypeAdapter(MCJEServerType::class.java, ServerTypeSerializer)
-        }
-    }
+    install(ContentNegotiation){ gson }
 
     initServerRoute()
     initEnvRoute()
-    initMuCoreRoute()
 }

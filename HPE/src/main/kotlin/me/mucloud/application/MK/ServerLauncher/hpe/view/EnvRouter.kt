@@ -10,6 +10,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
+import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
 
 fun Application.initEnvRoute(){
     routing {
@@ -22,16 +23,13 @@ fun Application.initEnvRoute(){
                 val rawData = call.receive<JsonObject>()
                 val envName = rawData["name"]?.asString ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing property \"Name\"")
                 val envPath = rawData["path"]?.asString ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing property \"Path\"")
-                if(EnvPool.addEnv(envName, envPath)) {
-                    call.respond(HttpStatusCode.OK)
-                }else{
-                    call.respond(HttpStatusCode.BadRequest, "MuEnvironment already exists.")
-                }
+                EnvPool.regEnv(JavaEnvironment(envName, envPath))
+                call.respond(HttpStatusCode.OK)
             }
 
             get("delete/{name}"){
                 try{
-                    if (EnvPool.deleteEnv(call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid Environment Name."))) call.respond(HttpStatusCode.OK, "Delete Success.") else call.respond(HttpStatusCode.InternalServerError, "MuCore Not have this Environment, please Re-Get ENVLIST.")
+                    if (EnvPool.delEnv(call.parameters["name"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid Environment Name."))) call.respond(HttpStatusCode.OK, "Delete Success.") else call.respond(HttpStatusCode.InternalServerError, "MuCore Not have this Environment, please Re-Get ENVLIST.")
                 }catch(e: NumberFormatException){
                     call.respond(HttpStatusCode.BadRequest, e.toString())
                 }
