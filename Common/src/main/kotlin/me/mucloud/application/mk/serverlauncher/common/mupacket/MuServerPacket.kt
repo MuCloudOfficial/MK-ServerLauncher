@@ -1,6 +1,7 @@
-package me.mucloud.application.mk.serverlauncher.common.mupacket.api
+package me.mucloud.application.mk.serverlauncher.common.mupacket
 
 import com.google.gson.JsonObject
+import me.mucloud.application.mk.serverlauncher.common.mupacket.api.AbstractMuPacket
 import me.mucloud.application.mk.serverlauncher.common.server.MCJEServer
 
 abstract class MuServerPacket(

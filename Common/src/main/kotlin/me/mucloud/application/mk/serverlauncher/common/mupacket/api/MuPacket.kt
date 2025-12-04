@@ -3,8 +3,15 @@ package me.mucloud.application.mk.serverlauncher.common.mupacket.api
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 
+/**
+ * # MuPacket API
+ *
+ * The Core Concept of MuPacketAPI
+ *
+ * @since TinyNova V1 | DEV.2
+ * @author Mu_Cloud
+ */
 interface MuPacket {
-
 
     fun operate(): Boolean
 

@@ -2,7 +2,15 @@ package me.mucloud.application.mk.serverlauncher.common.mupacket.api
 
 import com.google.gson.JsonObject
 
-abstract class AbstractMuPacket: MuPacket{
+/**
+ * # MuPacket API
+ *
+ * The Core Concept of MuPacketAPI
+ *
+ * @since TinyNova V1 | DEV.2
+ * @author Mu_Cloud
+ */
+abstract class AbstractMuPacket: MuPacket {
 
     abstract val id: String
     abstract val operation: String
