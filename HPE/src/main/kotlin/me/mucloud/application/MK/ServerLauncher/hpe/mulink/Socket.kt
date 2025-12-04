@@ -8,12 +8,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.mucloud.application.mk.serverlauncher.common.mupacket.api.MuPacketFactory
+import me.mucloud.application.mk.serverlauncher.hpe.MuCore
 import me.mucloud.application.mk.serverlauncher.hpe.gson
 
 fun Application.initSocket(){
     CoroutineScope(Dispatchers.IO).launch{
         val selectorManager = SelectorManager(Dispatchers.IO)
-        val serverSocket = aSocket(selectorManager).tcp().bind("127.0.0.1", 20039)
+        val serverSocket = aSocket(selectorManager).tcp().bind("127.0.0.1", MuCore.getMuCoreConfig().muLinkPort)
         log.info("MuLink is Listening at ${serverSocket.localAddress}")
         while(true){
             val socket = serverSocket.accept()
