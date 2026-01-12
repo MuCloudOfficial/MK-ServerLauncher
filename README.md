@@ -28,5 +28,12 @@
 </div>
 
 ---
-## 关于该项目的后续路线
+
+## 关于该项目即将做出的更改 | Upcoming updates about Project
+- [MP_MKSL_F1](https://github.com/MuCloudOfficial/MK-ServerLauncher/tree/MP_MKSL_F1): 可通过导入 ModPack(MCBBS, Modrinch, Curseforge) 的方式安装服务器
+- [MP_MKSL_F2](https://github.com/MuCloudOfficial/MK-ServerLauncher/tree/MP_MKSL_F2): 前端从 ElementPlus 更改为 Shadcn/UI
+
+---
+
+## 关于该项目的后续路线 | About Project
 基于当前的开发进度 ~其实是我脑死了~ ，MK-ServerLauncher 将分线进行，master 分支仅对于 Minecraft Dedicated Server 进行开发，同时项目将产生新分支 GenericPlatform_V1 用于将其通用化以使其支持更多其他游戏的 Dedicated Server
