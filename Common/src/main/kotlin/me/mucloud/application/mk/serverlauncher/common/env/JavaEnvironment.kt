@@ -10,7 +10,7 @@ import java.io.FileReader
  *
  * @since DEV.1
  * @author Mu_Cloud
- * @param evid JavaEnvironment Name
+ * @param name JavaEnvironment Name
  * @param path Java Installation Folder (like %JAVA_HOME% Folder)
  */
 class JavaEnvironment(
