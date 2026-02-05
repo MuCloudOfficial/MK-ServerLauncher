@@ -54,6 +54,8 @@ data class MCJEServer(
     }
 
     fun deploy(){
+        type.getOrRefreshVersionList(getFolder())
+
         val coreMeta = type.fetchLatestBuild(version) ?: run {
             emit("console.out:error", "Failed to resolve core build for ${type.id} $version")
             return

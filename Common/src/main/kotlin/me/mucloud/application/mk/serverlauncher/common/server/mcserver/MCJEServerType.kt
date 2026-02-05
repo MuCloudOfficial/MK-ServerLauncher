@@ -48,7 +48,7 @@ abstract class MCJEServerType(
 
     open fun resolveCoreJar(folder: File): File = folder.resolve("core.jar")
 
-    open fun cacheFile(folder: File): File = folder.resolve("version.json")
+    open fun cacheFile(folder: File): File = folder.resolve("core-cache.json")
 
     open fun readVersionCache(folder: File): JsonObject? {
         val f = cacheFile(folder)
@@ -66,6 +66,44 @@ abstract class MCJEServerType(
             addProperty("updatedAt", System.currentTimeMillis())
         }
         FileWriter(f, UTF_8).use { it.write(json.toString()) }
+    }
+
+    open val versionListFlag: String? = null
+
+    open fun versionListCacheFile(folder: File): File = folder.resolve("versionlist-cache.json")
+
+    fun readVersionListCache(folder: File): JsonObject? {
+        val f = versionListCacheFile(folder)
+        if (!f.exists()) return null
+        return runCatching { JsonParser.parseReader(f.reader(UTF_8)).asJsonObject }.getOrNull()
+    }
+
+    fun writeVersionListCache(folder: File, payload: JsonObject) {
+        val f = versionListCacheFile(folder)
+        FileWriter(f, UTF_8).use { it.write(payload.toString()) }
+    }
+
+    fun getOrRefreshVersionList(folder: File): JsonObject? {
+        val cacheRoot = readVersionListCache(folder) ?: JsonObject()
+        val cached = cacheRoot.getAsJsonObject(id)
+        val cachedFlag = cached?.get("flag")?.asString
+        if (cached != null && cachedFlag != null && cachedFlag == versionListFlag) {
+            return cached.getAsJsonObject("data")
+        }
+
+        val url = getVerListAPI()
+        val data = runCatching {
+            JsonParser.parseReader(InputStreamReader(url.openStream(), UTF_8)).asJsonObject
+        }.getOrNull() ?: return cached?.getAsJsonObject("data")
+
+        val updated = JsonObject().apply {
+            addProperty("flag", versionListFlag)
+            addProperty("updatedAt", System.currentTimeMillis())
+            add("data", data)
+        }
+        cacheRoot.add(id, updated)
+        writeVersionListCache(folder, cacheRoot)
+        return data
     }
 
     abstract fun fetchLatestBuild(version: String): CoreMeta?
@@ -96,52 +134,59 @@ abstract class MCJEServerType(
         }
 
         val PAPER = object: MCJEServerType("paper", "PaperSpigot", "A High Performance Server based on Spigot"){
-            override fun getVerListAPI(): URL = URL("")
-            override fun getCoreLinkByVerAPI(ver: String): URL = URL("")
+            override val versionListFlag: String? = "paper:versionlist:v1"
+
+            override fun getVerListAPI(): URL = URL("https://api.papermc.io/v2/projects/paper")
+
+            override fun getCoreLinkByVerAPI(ver: String): URL {
+                val baseApi = "https://api.papermc.io/v2/projects"
+                val verUrl = "$baseApi/paper/versions/$ver"
+                val verJson = JsonParser.parseReader(InputStreamReader(URL(verUrl).openStream(), UTF_8)).asJsonObject
+                val builds = verJson.getAsJsonArray("builds")
+                val latestBuild = builds.get(builds.size() - 1).asString
+                val fileName = String.format("paper-%s-%s.jar", ver, latestBuild)
+                val downloadUrl = "$baseApi/paper/versions/$ver/builds/$latestBuild/downloads/$fileName"
+                return URL(downloadUrl)
+            }
 
             override fun fetchLatestBuild(version: String): CoreMeta? {
-                return fetchLatestBuildFromApi(
-                    project = "paper",
-                    baseApi = "https://api.papermc.io/v2/projects",
-                    version = version,
-                    filePattern = "paper-%s-%s.jar"
-                )
+                val url = runCatching { getCoreLinkByVerAPI(version) }.getOrNull() ?: return null
+                val build = parseBuildFromUrl(url.toString()) ?: ""
+                return CoreMeta("paper", version, build, url.toString())
             }
         }
 
         val LEAVES = object: MCJEServerType("leaves", "Leaves", "A High Performance Server with Fixed Broken Features"){
-            override fun getVerListAPI(): URL = URL("")
-            override fun getCoreLinkByVerAPI(ver: String): URL = URL("")
+            override val versionListFlag: String? = "leaves:versionlist:v1"
+
+            override fun getVerListAPI(): URL = URL("https://api.leavesmc.org/v2/projects/leaves")
+
+            override fun getCoreLinkByVerAPI(ver: String): URL {
+                val baseApi = "https://api.leavesmc.org/v2/projects"
+                val verUrl = "$baseApi/leaves/versions/$ver"
+                val verJson = JsonParser.parseReader(InputStreamReader(URL(verUrl).openStream(), UTF_8)).asJsonObject
+                val builds = verJson.getAsJsonArray("builds")
+                val latestBuild = builds.get(builds.size() - 1).asString
+                val fileName = String.format("leaves-%s-%s.jar", ver, latestBuild)
+                val downloadUrl = "$baseApi/leaves/versions/$ver/builds/$latestBuild/downloads/$fileName"
+                return URL(downloadUrl)
+            }
 
             override fun fetchLatestBuild(version: String): CoreMeta? {
-                return fetchLatestBuildFromApi(
-                    project = "leaves",
-                    baseApi = "https://api.leavesmc.org/v2/projects",
-                    version = version,
-                    filePattern = "leaves-%s-%s.jar"
-                )
+                val url = runCatching { getCoreLinkByVerAPI(version) }.getOrNull() ?: return null
+                val build = parseBuildFromUrl(url.toString()) ?: ""
+                return CoreMeta("leaves", version, build, url.toString())
             }
         }
     }
 
-    protected fun fetchLatestBuildFromApi(
-        project: String,
-        baseApi: String,
-        version: String,
-        filePattern: String
-    ): CoreMeta? {
-        return runCatching {
-            val verUrl = "$baseApi/$project/versions/$version"
-            val verJson = JsonParser.parseReader(InputStreamReader(URL(verUrl).openStream(), UTF_8)).asJsonObject
-            val builds = verJson.getAsJsonArray("builds")
-            if (builds.size() == 0) {
-                return null
-            }
-            val latestBuild = builds.get(builds.size() - 1).asString
-            val fileName = String.format(filePattern, version, latestBuild)
-            val downloadUrl = "$baseApi/$project/versions/$version/builds/$latestBuild/downloads/$fileName"
-            CoreMeta(project, version, latestBuild, downloadUrl)
-        }.getOrNull()
+    protected fun parseBuildFromUrl(url: String): String? {
+        val marker = "/builds/"
+        val start = url.indexOf(marker)
+        if (start < 0) return null
+        val end = url.indexOf("/downloads/", start + marker.length)
+        if (end < 0) return null
+        return url.substring(start + marker.length, end)
     }
     }
 
