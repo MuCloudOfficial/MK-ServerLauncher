@@ -8,8 +8,10 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.annotations.SerializedName
+import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
+import java.io.InputStreamReader
 import java.lang.reflect.Type
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -46,6 +48,9 @@ data class MCJEServer(
     private val totalPassCount: Int = 0
     private val config: MCJEServerConfig = MCJEServerConfig(this)
     private val dataFlow = MutableSharedFlow<JsonObject>()
+
+    @Transient private var process: Process? = null
+    @Transient private var processWriter: BufferedWriter? = null
 
     init{
         if(!location.exists()){
@@ -111,7 +116,15 @@ data class MCJEServer(
                     })}
                 }
             }catch (e: Exception) {
-                // TODO(ERR PACK)
+                runBlocking {
+                    dataFlow.emit(JsonObject().also { j ->
+                        j.addProperty("type", "console.out:before_work_err")
+                        j.add("data", JsonObject().also { data ->
+                            data.addProperty("index", beforeWork.indexOf(be))
+                            data.addProperty("msg", e.message ?: "Unknown Error")
+                        })
+                    })
+                }
                 return 1
             }
         }
@@ -119,20 +132,55 @@ data class MCJEServer(
     }
 
     fun start() {
-        running = true
-        runBeforeWorks()
-        Runtime.getRuntime().exec("").errorStream.bufferedReader(UTF_8).forEachLine { l ->
-           runBlocking {
-               dataFlow.emit(JsonObject().apply {
-                   addProperty("type", "console.out:info")
-                   addProperty("msg", l)
-               })
-           }
+        if (running) return
+        if (runBeforeWorks() != 0) return
+
+        val jar = getServerJar() ?: run {
+            emit("console.out:error", "Server jar not found. Please deploy/download server core first.")
+            return
         }
+
+        val javaExec = env.getAbsoluteExecPath()
+        val command = listOf(javaExec, "-jar", jar.absolutePath, "nogui")
+
+        val pb = ProcessBuilder(command)
+            .directory(getFolder())
+            .redirectErrorStream(false)
+
+        process = pb.start().also {
+            processWriter = it.outputStream.bufferedWriter(UTF_8)
+        }
+        running = true
+
+        Thread {
+            process?.inputStream?.let { ins ->
+                InputStreamReader(ins, UTF_8).buffered().forEachLine { l ->
+                    emit("console.out:info", l)
+                }
+            }
+        }.start()
+
+        Thread {
+            process?.errorStream?.let { ins ->
+                InputStreamReader(ins, UTF_8).buffered().forEachLine { l ->
+                    emit("console.out:error", l)
+                }
+            }
+        }.start()
     }
 
     fun stop() {
-        running = false
+        if (!running) return
+        try {
+            sendCommand("stop")
+            process?.waitFor()
+        } catch (_: Exception) {
+            process?.destroy()
+        } finally {
+            running = false
+            processWriter = null
+            process = null
+        }
     }
 
     fun getName(): String = name
@@ -181,11 +229,16 @@ data class MCJEServer(
     fun getServerFlow() = dataFlow
 
     fun sendCommand(cmd: String){
-        TODO("Implementation in iLoveMu")
+        if (!running) return
+        processWriter?.apply {
+            write(cmd)
+            newLine()
+            flush()
+        }
     }
 
     fun sendMsg(msg: String){
-        TODO("Implementation in iLoveMu")
+        sendCommand("say $msg")
     }
 }
 
