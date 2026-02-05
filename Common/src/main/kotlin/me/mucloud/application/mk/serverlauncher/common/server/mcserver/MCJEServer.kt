@@ -5,12 +5,15 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.annotations.SerializedName
 import java.io.File
 import java.io.FileWriter
+import java.io.InputStreamReader
 import java.lang.reflect.Type
+import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.util.*
@@ -53,7 +56,111 @@ data class MCJEServer(
     }
 
     fun deploy(){
+        val coreMeta = when (type.id) {
+            "paper" -> fetchLatestBuild(
+                project = "paper",
+                baseApi = "https://api.papermc.io/v2/projects",
+                version = version,
+                filePattern = "paper-%s-%s.jar"
+            )
+            "leaves" -> fetchLatestBuild(
+                project = "leaves",
+                baseApi = "https://api.leavesmc.org/v2/projects",
+                version = version,
+                filePattern = "leaves-%s-%s.jar"
+            )
+            else -> {
+                emit("console.out:error", "Unsupported server type: ${type.id}")
+                return
+            }
+        } ?: return
 
+        val cache = readVersionCache()
+        val cachedBuild = cache?.get("build")?.asString
+        if (cache != null && cachedBuild == coreMeta.build) {
+            emit("console.out:info", "Core is up-to-date (build ${coreMeta.build}).")
+            return
+        }
+
+        downloadCore(coreMeta.url, getFolder().resolve("core.jar"))
+        writeVersionCache(coreMeta)
+        writeEula()
+        emit("console.out:info", "Core updated: ${coreMeta.project} ${coreMeta.version} build ${coreMeta.build}")
+        saveToFile()
+    }
+
+    private fun emit(type: String, msg: String){
+        runBlocking {
+            dataFlow.emit(JsonObject().apply {
+                addProperty("type", type)
+                addProperty("msg", msg)
+            })
+        }
+    }
+
+    private fun readVersionCache(): JsonObject? {
+        val f = getFolder().resolve("version.json")
+        if (!f.exists()) return null
+        return runCatching {
+            JsonParser.parseReader(f.reader(UTF_8)).asJsonObject
+        }.getOrNull()
+    }
+
+    private data class CoreMeta(
+        val project: String,
+        val version: String,
+        val build: String,
+        val url: String
+    )
+
+    private fun fetchLatestBuild(project: String, baseApi: String, version: String, filePattern: String): CoreMeta? {
+        return runCatching {
+            val verUrl = "$baseApi/$project/versions/$version"
+            val verJson = JsonParser.parseReader(InputStreamReader(URL(verUrl).openStream(), UTF_8)).asJsonObject
+            val builds = verJson.getAsJsonArray("builds")
+            if (builds.size() == 0) {
+                emit("console.out:error", "No builds found for $project $version")
+                return null
+            }
+            val latestBuild = builds.get(builds.size() - 1).asString
+            val fileName = String.format(filePattern, version, latestBuild)
+            val downloadUrl = "$baseApi/$project/versions/$version/builds/$latestBuild/downloads/$fileName"
+            CoreMeta(project, version, latestBuild, downloadUrl)
+        }.getOrElse { e ->
+            emit("console.out:error", "Failed to fetch latest build: ${e.message}")
+            null
+        }
+    }
+
+    private fun downloadCore(url: String, target: File) {
+        val tmp = File(target.absolutePath + ".tmp")
+        runCatching {
+            URL(url).openStream().use { input ->
+                tmp.outputStream().use { out -> input.copyTo(out) }
+            }
+            if (target.exists()) target.delete()
+            tmp.renameTo(target)
+        }.onFailure { e ->
+            if (tmp.exists()) tmp.delete()
+            emit("console.out:error", "Download failed: ${e.message}")
+        }
+    }
+
+    private fun writeVersionCache(meta: CoreMeta) {
+        val f = getFolder().resolve("version.json")
+        val json = JsonObject().apply {
+            addProperty("project", meta.project)
+            addProperty("version", meta.version)
+            addProperty("build", meta.build)
+            addProperty("url", meta.url)
+            addProperty("updatedAt", System.currentTimeMillis())
+        }
+        FileWriter(f, UTF_8).use { it.write(json.toString()) }
+    }
+
+    private fun writeEula() {
+        val eulaFile = getFolder().resolve("eula.txt")
+        eulaFile.writeText("eula=true\n", UTF_8)
     }
 
     fun regBeforeWork(work: String) = beforeWork.add(work)
