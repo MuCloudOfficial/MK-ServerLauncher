@@ -70,10 +70,9 @@ data class MCJEServer(
         }
     }
 
-    private fun findServerJar(): File? {
+    private fun getServerJar(): File? {
         val preferred = getFolder().resolve("server.jar")
-        if (preferred.exists()) return preferred
-        return getFolder().listFiles()?.firstOrNull { it.extension.equals("jar", ignoreCase = true) }
+        return preferred.takeIf { it.exists() }
     }
 
     fun regBeforeWork(work: String) = beforeWork.add(work)
@@ -111,8 +110,8 @@ data class MCJEServer(
         if (running) return
         if (runBeforeWorks() != 0) return
 
-        val jar = findServerJar() ?: run {
-            emit("console.out:error", "Server jar not found in ${getFolder().absolutePath}")
+        val jar = getServerJar() ?: run {
+            emit("console.out:error", "Server jar not found. Please deploy/download server core first.")
             return
         }
 
