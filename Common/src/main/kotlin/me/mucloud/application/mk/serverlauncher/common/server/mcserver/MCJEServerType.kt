@@ -48,26 +48,6 @@ abstract class MCJEServerType(
 
     open fun resolveCoreJar(folder: File): File = folder.resolve("core.jar")
 
-    open fun cacheFile(folder: File): File = folder.resolve("core-cache.json")
-
-    open fun readVersionCache(folder: File): JsonObject? {
-        val f = cacheFile(folder)
-        if (!f.exists()) return null
-        return runCatching { JsonParser.parseReader(f.reader(UTF_8)).asJsonObject }.getOrNull()
-    }
-
-    open fun writeVersionCache(folder: File, meta: CoreMeta) {
-        val f = cacheFile(folder)
-        val json = JsonObject().apply {
-            addProperty("project", meta.project)
-            addProperty("version", meta.version)
-            addProperty("build", meta.build)
-            addProperty("url", meta.url)
-            addProperty("updatedAt", System.currentTimeMillis())
-        }
-        FileWriter(f, UTF_8).use { it.write(json.toString()) }
-    }
-
     open val versionListFlag: String? = null
 
     open fun versionListCacheFile(folder: File): File = folder.resolve("versionlist-cache.json")
@@ -187,7 +167,6 @@ abstract class MCJEServerType(
         val end = url.indexOf("/downloads/", start + marker.length)
         if (end < 0) return null
         return url.substring(start + marker.length, end)
-    }
     }
 
 }

@@ -61,15 +61,7 @@ data class MCJEServer(
             return
         }
 
-        val cache = type.readVersionCache(getFolder())
-        val cachedBuild = cache?.get("build")?.asString
-        if (cache != null && cachedBuild == coreMeta.build) {
-            emit("console.out:info", "Core is up-to-date (build ${coreMeta.build}).")
-            return
-        }
-
         downloadCore(coreMeta.url, type.resolveCoreJar(getFolder()))
-        type.writeVersionCache(getFolder(), coreMeta)
         writeEula()
         emit("console.out:info", "Core updated: ${coreMeta.project} ${coreMeta.version} build ${coreMeta.build}")
         saveToFile()
