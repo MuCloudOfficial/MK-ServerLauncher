@@ -58,7 +58,24 @@ data class MCJEServer(
     }
 
     fun deploy(){
-        // TODO: server core download/install by MCJEServerType APIs
+        try {
+            val core = type.getServerCore(version)
+            val target = getFolder().resolve("core.jar")
+            if (core.absolutePath != target.absolutePath) {
+                target.parentFile?.mkdirs()
+                java.nio.file.Files.copy(
+                    core.toPath(),
+                    target.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                )
+            }
+            val eulaFile = getFolder().resolve("eula.txt")
+            if (!eulaFile.exists()) {
+                eulaFile.writeText("eula=true\n", StandardCharsets.UTF_8)
+            }
+        } catch (e: Exception) {
+            emit("console.out:error", "Deploy failed: ${e.message ?: "Unknown Error"}")
+        }
     }
 
     private fun emit(type: String, msg: String){
@@ -71,7 +88,7 @@ data class MCJEServer(
     }
 
     private fun getServerJar(): File? {
-        val preferred = getFolder().resolve("server.jar")
+        val preferred = getFolder().resolve("core.jar")
         return preferred.takeIf { it.exists() }
     }
 
