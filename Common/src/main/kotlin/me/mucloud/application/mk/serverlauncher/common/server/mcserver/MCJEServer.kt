@@ -48,6 +48,8 @@ data class MCJEServer(
     private val config: MCJEServerConfig = MCJEServerConfig(this)
     private val dataFlow = MutableSharedFlow<JsonObject>()
 
+    private var lastLaunchAt: LocalDateTime? = null
+
     @Transient private var process: Process? = null
     @Transient private var processWriter: BufferedWriter? = null
 
@@ -143,6 +145,7 @@ data class MCJEServer(
             processWriter = it.outputStream.bufferedWriter(UTF_8)
         }
         running = true
+        lastLaunchAt = LocalDateTime.now()
 
         Thread {
             process?.inputStream?.let { ins ->
@@ -206,7 +209,7 @@ data class MCJEServer(
     fun getEnv(): JavaEnvironment = env
     fun setEnv(env: JavaEnvironment) { this.env = env }
 
-    fun lastLaunchTime(): LocalDateTime = LocalDateTime.now() //todo
+    fun lastLaunchTime(): LocalDateTime = lastLaunchAt ?: LocalDateTime.MIN
 
     fun getConfig(): MCJEServerConfig = MCJEServerConfig(this)
     fun getBeforeWorks(): List<String> = beforeWork
