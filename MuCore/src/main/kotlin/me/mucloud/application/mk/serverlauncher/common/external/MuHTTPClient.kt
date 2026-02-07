@@ -26,6 +26,9 @@ object MuHTTPClient {
         }
     }
 
+    fun getJsonObject(url: String, key: String): JsonObject = getJsonObject(url).getAsJsonObject(key)
+
+
     /**
      * # | Utils
      *
@@ -40,5 +43,7 @@ object MuHTTPClient {
             return gson.toJsonTree(i.body.string()).asJsonArray
         }
     }
+
+    fun getJsonArray(url: String, key: String): JsonArray = getJsonObject(url).getAsJsonArray(key)
 
 }

@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":Common"))
+    implementation(project(":MuCore"))
     implementation(libs.bundles.ktor.pack)
     implementation(libs.bundles.gson.pack)
 

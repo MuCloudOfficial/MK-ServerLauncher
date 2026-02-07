@@ -45,7 +45,9 @@ object StandardMCJEServerTypes {
 
     private fun getPaperAvailableVersions(project: String): List<String> {
         val info = readJsonObject("$PAPER_API/$project")
-        return info.getAsJsonArray("versions").map { it.asString }
+        return info.getAsJsonArray("versions")
+            .filter { it.asJsonObject["type"].asString == "release" } // Filter: Only Release
+            .map { it.asJsonObject["id"].asString }
     }
 
     private fun getPaperLatestBuild(project: String, version: String): Int {
