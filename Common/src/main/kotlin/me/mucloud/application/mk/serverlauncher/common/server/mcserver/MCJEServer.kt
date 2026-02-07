@@ -16,7 +16,11 @@ import java.lang.reflect.Type
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
 import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
@@ -47,11 +51,14 @@ data class MCJEServer(
     private val totalPassCount: Int = 0
     private val config: MCJEServerConfig = MCJEServerConfig(this)
     private val dataFlow = MutableSharedFlow<JsonObject>()
+    private val ioScope = CoroutineScope(Dispatchers.IO)
 
     private var lastLaunchAt: LocalDateTime? = null
 
     @Transient private var process: Process? = null
     @Transient private var processWriter: BufferedWriter? = null
+    @Transient private var stdoutJob: Job? = null
+    @Transient private var stderrJob: Job? = null
 
     init{
         if(!location.exists()){
@@ -147,21 +154,21 @@ data class MCJEServer(
         running = true
         lastLaunchAt = LocalDateTime.now()
 
-        Thread {
+        stdoutJob = ioScope.launch {
             process?.inputStream?.let { ins ->
                 InputStreamReader(ins, UTF_8).buffered().forEachLine { l ->
                     emit("console.out:info", l)
                 }
             }
-        }.start()
+        }
 
-        Thread {
+        stderrJob = ioScope.launch {
             process?.errorStream?.let { ins ->
                 InputStreamReader(ins, UTF_8).buffered().forEachLine { l ->
                     emit("console.out:error", l)
                 }
             }
-        }.start()
+        }
     }
 
     fun stop() {
@@ -173,6 +180,10 @@ data class MCJEServer(
             process?.destroy()
         } finally {
             running = false
+            stdoutJob?.cancel()
+            stderrJob?.cancel()
+            stdoutJob = null
+            stderrJob = null
             processWriter = null
             process = null
         }
