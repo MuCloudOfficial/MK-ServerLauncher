@@ -1,9 +1,9 @@
 package me.mucloud
 
 import com.google.gson.JsonObject
-import me.mucloud.application.mk.serverlauncher.common.external.MuLogger.info
-import me.mucloud.application.mk.serverlauncher.common.mupacket.api.AbstractMuPacket
-import me.mucloud.application.mk.serverlauncher.common.mupacket.api.MuPacketFactory
+import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.info
+import me.mucloud.application.mk.serverlauncher.mupacket.api.AbstractMuPacket
+import me.mucloud.application.mk.serverlauncher.mupacket.api.MuPacketFactory
 import kotlin.test.Test
 
 class MuMsgPacket(): AbstractMuPacket(){

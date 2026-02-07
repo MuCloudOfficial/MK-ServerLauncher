@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.external
+package me.mucloud.application.mk.serverlauncher.core.external
 
 import com.sun.management.OperatingSystemMXBean
 import kotlinx.coroutines.CoroutineScope
@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import me.mucloud.application.mk.serverlauncher.common.MuCoreMini
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
+import me.mucloud.application.mk.serverlauncher.MuCoreMini
+import me.mucloud.application.mk.serverlauncher.muserver.ServerPool
 import java.lang.management.ManagementFactory
 import java.util.*
 import kotlin.concurrent.schedule

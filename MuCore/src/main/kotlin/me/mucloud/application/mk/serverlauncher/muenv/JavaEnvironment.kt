@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.env
+package me.mucloud.application.mk.serverlauncher.muenv
 
 import java.io.File
 import java.io.FileReader

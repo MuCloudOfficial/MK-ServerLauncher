@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.server
+package me.mucloud.application.mk.serverlauncher.muserver
 
 enum class ServerStatus(val code: Int) {
     STOPPED(0),

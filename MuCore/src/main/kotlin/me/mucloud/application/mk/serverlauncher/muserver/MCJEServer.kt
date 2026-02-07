@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.server
+package me.mucloud.application.mk.serverlauncher.muserver
 
 import com.electronwill.nightconfig.core.Config
 import com.electronwill.nightconfig.core.file.FileConfig
@@ -9,11 +9,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import me.mucloud.application.mk.serverlauncher.common.MuCoreMini
-import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
-import me.mucloud.application.mk.serverlauncher.common.external.MuLogger.err
-import me.mucloud.application.mk.serverlauncher.common.external.MuLogger.warn
-import me.mucloud.application.mk.serverlauncher.common.mupacket.api.MuPacket
+import me.mucloud.application.mk.serverlauncher.MuCoreMini
+import me.mucloud.application.mk.serverlauncher.muenv.JavaEnvironment
+import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.err
+import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.warn
+import me.mucloud.application.mk.serverlauncher.mupacket.api.MuPacket
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter

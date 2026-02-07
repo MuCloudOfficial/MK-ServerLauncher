@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.server
+package me.mucloud.application.mk.serverlauncher.muserver
 
 import java.io.File
 import java.nio.file.Path

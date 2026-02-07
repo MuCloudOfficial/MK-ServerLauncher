@@ -1,10 +1,10 @@
-package me.mucloud.application.mk.serverlauncher.common
+package me.mucloud.application.mk.serverlauncher
 
-import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
-import me.mucloud.application.mk.serverlauncher.common.external.AppInfoStatus
-import me.mucloud.application.mk.serverlauncher.common.external.SystemMonitor
-import me.mucloud.application.mk.serverlauncher.common.manage.MuConfiguration
-import me.mucloud.application.mk.serverlauncher.common.server.ServerPool
+import me.mucloud.application.mk.serverlauncher.core.external.AppInfoStatus
+import me.mucloud.application.mk.serverlauncher.core.external.SystemMonitor
+import me.mucloud.application.mk.serverlauncher.core.MuConfiguration
+import me.mucloud.application.mk.serverlauncher.muserver.ServerPool
+import me.mucloud.application.mk.serverlauncher.muenv.EnvPool
 
 object MuCoreMini {
 

@@ -1,6 +1,6 @@
-package me.mucloud.application.mk.serverlauncher.common.env
+package me.mucloud.application.mk.serverlauncher.muenv
 
-import me.mucloud.application.mk.serverlauncher.common.server.MCJEServer
+import me.mucloud.application.mk.serverlauncher.muserver.MCJEServer
 import java.util.regex.Pattern
 
 /**

@@ -7,7 +7,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.mucloud.application.mk.serverlauncher.common.mupacket.api.MuPacketFactory
+import me.mucloud.application.mk.serverlauncher.mupacket.api.MuPacketFactory
 import me.mucloud.application.mk.serverlauncher.hpe.MuCore
 import me.mucloud.application.mk.serverlauncher.hpe.gson
 

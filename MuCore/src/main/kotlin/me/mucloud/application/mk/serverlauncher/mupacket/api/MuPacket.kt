@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.mupacket.api
+package me.mucloud.application.mk.serverlauncher.mupacket.api
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject

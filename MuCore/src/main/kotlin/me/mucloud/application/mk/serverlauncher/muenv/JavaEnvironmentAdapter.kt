@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.env
+package me.mucloud.application.mk.serverlauncher.muenv
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject

@@ -9,8 +9,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import me.mucloud.application.mk.serverlauncher.common.env.EnvPool
-import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
+import me.mucloud.application.mk.serverlauncher.muenv.EnvPool
+import me.mucloud.application.mk.serverlauncher.muenv.JavaEnvironment
 
 fun Application.initEnvRoute(){
     routing {

@@ -1,11 +1,10 @@
-package me.mucloud.application.mk.serverlauncher.common.server
+package me.mucloud.application.mk.serverlauncher.muserver
 
 import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
-import me.mucloud.application.mk.serverlauncher.common.MuCoreMini
-import me.mucloud.application.mk.serverlauncher.common.external.MuLogger.info
-import me.mucloud.application.mk.serverlauncher.common.external.MuLogger.warn
-import me.mucloud.application.mk.serverlauncher.common.server.StandardMCJEServerTypes.UNKNOWN
+import me.mucloud.application.mk.serverlauncher.MuCoreMini
+import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.info
+import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.warn
+import me.mucloud.application.mk.serverlauncher.muserver.StandardMCJEServerTypes.UNKNOWN
 import java.io.File
 import java.io.FileReader
 import java.nio.charset.StandardCharsets
@@ -69,7 +68,7 @@ object ServerPool {
                     warn("Skipped")
                 }else{
                     info("Introspecting Server Description >> $f")
-                    Pool.add(gson.fromJson(FileReader(target, StandardCharsets.UTF_8), object: TypeToken<MCJEServer>(){}))
+                    Pool.add(gson.fromJson(FileReader(target, StandardCharsets.UTF_8), object: com.google.gson.reflect.TypeToken<MCJEServer>(){}))
                 }
             }
         }

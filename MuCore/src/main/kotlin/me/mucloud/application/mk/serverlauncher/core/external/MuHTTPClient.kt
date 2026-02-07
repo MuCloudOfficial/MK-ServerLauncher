@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.common.external
+package me.mucloud.application.mk.serverlauncher.core.external
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray

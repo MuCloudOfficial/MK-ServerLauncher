@@ -1,8 +1,8 @@
-package me.mucloud.application.mk.serverlauncher.common.mupacket
+package me.mucloud.application.mk.serverlauncher.mupacket
 
 import com.google.gson.JsonObject
-import me.mucloud.application.mk.serverlauncher.common.env.JavaEnvironment
-import me.mucloud.application.mk.serverlauncher.common.mupacket.api.AbstractMuPacket
+import me.mucloud.application.mk.serverlauncher.muenv.JavaEnvironment
+import me.mucloud.application.mk.serverlauncher.mupacket.api.AbstractMuPacket
 
 abstract class MuEnvPacket(
     val targetJEnv: JavaEnvironment,
