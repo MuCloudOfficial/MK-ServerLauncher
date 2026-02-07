@@ -1,10 +1,10 @@
-package me.mucloud.application.mk.serverlauncher.hpe.view
+package me.mucloud.application.mk.serverlauncher.muview.view
 
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import me.mucloud.application.mk.serverlauncher.hpe.gson
+import me.mucloud.application.mk.serverlauncher.muview.gson
 
 fun Application.initRoute() {
     install(CORS){

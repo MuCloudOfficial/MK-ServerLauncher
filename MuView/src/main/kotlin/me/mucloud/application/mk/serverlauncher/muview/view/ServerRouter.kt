@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.hpe.view
+package me.mucloud.application.mk.serverlauncher.muview.view
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser

@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.hpe
+package me.mucloud.application.mk.serverlauncher.muview
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -14,10 +14,10 @@ import me.mucloud.application.mk.serverlauncher.muserver.MCJEServer
 import me.mucloud.application.mk.serverlauncher.muserver.MCJEServerAdapter
 import me.mucloud.application.mk.serverlauncher.muserver.MCJEServerType
 import me.mucloud.application.mk.serverlauncher.core.server.ServerTypeSerializer
-import me.mucloud.application.mk.serverlauncher.hpe.mulink.initSocket
-import me.mucloud.application.mk.serverlauncher.hpe.mulink.initWebSocket
-import me.mucloud.application.mk.serverlauncher.hpe.session.initMuSessionManager
-import me.mucloud.application.mk.serverlauncher.hpe.view.initRoute
+import me.mucloud.application.mk.serverlauncher.muview.mulink.initSocket
+import me.mucloud.application.mk.serverlauncher.muview.mulink.initWebSocket
+import me.mucloud.application.mk.serverlauncher.muview.session.initMuSessionManager
+import me.mucloud.application.mk.serverlauncher.muview.view.initRoute
 
 var MuCore: MuCoreMini = MuCoreMini
     private set

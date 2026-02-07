@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.hpe.mulink
+package me.mucloud.application.mk.serverlauncher.muview.mulink
 
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import me.mucloud.application.mk.serverlauncher.core.external.SystemMonitor
 import me.mucloud.application.mk.serverlauncher.mupacket.api.MuPacketFactory
 import me.mucloud.application.mk.serverlauncher.muserver.ServerPool
-import me.mucloud.application.mk.serverlauncher.hpe.gson
+import me.mucloud.application.mk.serverlauncher.muview.gson
 import kotlin.time.Duration.Companion.seconds
 
 fun Application.initWebSocket() {
