@@ -13,7 +13,7 @@ import me.mucloud.application.mk.serverlauncher.muenv.JavaEnvironmentAdapter
 import me.mucloud.application.mk.serverlauncher.muserver.MCJEServer
 import me.mucloud.application.mk.serverlauncher.muserver.MCJEServerAdapter
 import me.mucloud.application.mk.serverlauncher.muserver.MCJEServerType
-import me.mucloud.application.mk.serverlauncher.core.server.ServerTypeSerializer
+import me.mucloud.application.mk.serverlauncher.mucore.server.ServerTypeSerializer
 import me.mucloud.application.mk.serverlauncher.muview.mulink.initSocket
 import me.mucloud.application.mk.serverlauncher.muview.mulink.initWebSocket
 import me.mucloud.application.mk.serverlauncher.muview.session.initMuSessionManager
