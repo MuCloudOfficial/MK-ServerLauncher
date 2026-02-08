@@ -11,8 +11,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import me.mucloud.application.mk.serverlauncher.MuCoreMini
 import me.mucloud.application.mk.serverlauncher.muenv.JavaEnvironment
-import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.err
-import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.warn
+import me.mucloud.application.mk.serverlauncher.mucore.external.MuLogger.err
+import me.mucloud.application.mk.serverlauncher.mucore.external.MuLogger.warn
 import me.mucloud.application.mk.serverlauncher.mupacket.api.MuPacket
 import java.io.File
 import java.io.FileReader

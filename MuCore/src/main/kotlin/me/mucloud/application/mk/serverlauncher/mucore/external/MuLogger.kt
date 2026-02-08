@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.core.external
+package me.mucloud.application.mk.serverlauncher.mucore.external
 
 import me.mucloud.application.mk.serverlauncher.MuCoreMini
 import org.slf4j.Logger

@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.core
+package me.mucloud.application.mk.serverlauncher.mucore
 
 import com.electronwill.nightconfig.core.file.FileConfig
 import java.io.File

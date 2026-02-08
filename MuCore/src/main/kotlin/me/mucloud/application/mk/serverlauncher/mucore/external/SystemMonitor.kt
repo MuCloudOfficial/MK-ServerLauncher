@@ -1,4 +1,4 @@
-package me.mucloud.application.mk.serverlauncher.core.external
+package me.mucloud.application.mk.serverlauncher.mucore.external
 
 import com.sun.management.OperatingSystemMXBean
 import kotlinx.coroutines.CoroutineScope

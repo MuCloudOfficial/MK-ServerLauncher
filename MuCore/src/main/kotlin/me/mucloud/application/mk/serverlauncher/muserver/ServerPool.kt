@@ -2,8 +2,8 @@ package me.mucloud.application.mk.serverlauncher.muserver
 
 import com.google.gson.GsonBuilder
 import me.mucloud.application.mk.serverlauncher.MuCoreMini
-import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.info
-import me.mucloud.application.mk.serverlauncher.core.external.MuLogger.warn
+import me.mucloud.application.mk.serverlauncher.mucore.external.MuLogger.info
+import me.mucloud.application.mk.serverlauncher.mucore.external.MuLogger.warn
 import me.mucloud.application.mk.serverlauncher.muserver.StandardMCJEServerTypes.UNKNOWN
 import java.io.File
 import java.io.FileReader
