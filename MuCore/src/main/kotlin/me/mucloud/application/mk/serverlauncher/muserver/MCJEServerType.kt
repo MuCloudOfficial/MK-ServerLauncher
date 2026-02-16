@@ -1,6 +1,6 @@
 package me.mucloud.application.mk.serverlauncher.muserver
 
-import java.io.File
+import java.net.URL
 import java.nio.file.Path
 
 /**
@@ -19,6 +19,6 @@ abstract class MCJEServerType(
     val desc: String,
 ) {
     abstract fun getAvailableVersions(): List<String>
-    abstract fun getServerCore(vercode: String): File
+    abstract fun getCoreDownloadLink(vercode: String): URL
     abstract fun getServerCoreSettingsFile(): List<Path>
 }
