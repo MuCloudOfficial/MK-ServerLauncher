@@ -8,17 +8,19 @@ import java.io.FileReader
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
 
+/**
+ *  # Environment Pool
+ *
+ *  Supported to Install/Import/Delete MuEnvironment
+ *
+ *  @since VoidLand V1 | DEV.1
+ *  @author Mu_Cloud
+ */
 object EnvPool {
 
-    // Java Envs
-    private val jEnvs: MutableList<JavaEnvironment> = mutableListOf()
-
-    // JavaEnvironments  File
-    private val envFile = File("env.json")
-
-    /**
-     * Init of EnvPool
-     */
+    private val jEnvs: MutableList<JavaEnvironment> = mutableListOf() // In-Memory storage
+    private val envFile: File = File("env.json") // Persistent storage file
+    
     init {
         if(!envFile.exists()) {
             envFile.createNewFile()
@@ -28,9 +30,11 @@ object EnvPool {
     }
 
     /**
+     * # Local Java Environment Scanner
+     *
      * Scan the System Java Installation as JavaEnvironment named "SysEnv"
      *
-     * For now, it will only scan the "JAVA_HOME" system environment to locate the Java Installation in System
+     * *For now, it will only scan the "JAVA_HOME" system environment to locate the Java Installation in System*
      *
      * This Function Implementation may change Frequently
      */
@@ -56,9 +60,15 @@ object EnvPool {
      * Write [jEnvs] Object to [envFile] by JavaEnvironmentAdapter
      */
     fun save(){
-        FileWriter(envFile.also { if (!it.exists()) it.createNewFile() }, StandardCharsets.UTF_8).also {
-            it.write(GsonBuilder().setPrettyPrinting().create().toJson(jEnvs))
-            it.flush()
+        if(envFile.exists()){
+            FileWriter(envFile, StandardCharsets.UTF_8).apply {
+                write(GsonBuilder()
+                    .registerTypeAdapter(JavaEnvironment::class.java, JavaEnvironmentAdapter)
+                    .setPrettyPrinting()
+                    .create()
+                    .toJson(jEnvs))
+                flush()
+            }
         }
     }
 

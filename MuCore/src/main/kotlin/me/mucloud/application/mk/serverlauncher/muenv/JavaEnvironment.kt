@@ -55,13 +55,17 @@ class JavaEnvironment(
      */
     fun getVersion(): JavaVersion = JavaVersion.get(this)
 
+    /**
+     * Get the Java Environment Path as [File]
+     *
+     * @return The Java Environment Folder as [File]
+     */
+    fun getExecFolder(): File = File(path)
 
     /**
      * Get the Executable File
      *
      * @return The executable file of JavaEnvironment, which usually refers to the "java.exe" file
      */
-    fun getExecFolder(): File = File(path)
-
     fun getAbsoluteExecPath(): String = getExecFolder().resolve("bin/java.exe").absolutePath
 }
