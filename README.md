@@ -26,7 +26,6 @@
 
 ## 关于该项目即将做出的更改 | Upcoming updates about Project
 - [MP_MKSL_F1](https://github.com/MuCloudOfficial/MK-ServerLauncher/tree/MP_MKSL_F1): 可通过导入 ModPack(MCBBS, Modrinch, Curseforge) 的方式安装服务器
-- [MP_MKSL_F2](https://github.com/MuCloudOfficial/MK-ServerLauncher/tree/MP_MKSL_F2): 前端从 ElementPlus 更改为 Shadcn/UI
 
 ---
 
