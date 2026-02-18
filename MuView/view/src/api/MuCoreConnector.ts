@@ -1,68 +1,185 @@
 import axios from "axios";
 
-const backend = document.URL.split(new RegExp("/+"))[1]
+interface RuntimeLocation {
+    protocol: string;
+    hostname: string;
+    port: string;
+    origin: string;
+}
+
+const DEFAULT_CORE_PORT = "20038";
+const DEFAULT_HTTP_PROTOCOL = "http:";
+
+const getRuntimeLocation = (): RuntimeLocation | undefined => {
+    if (typeof window === "undefined" || !window.location) {
+        return undefined;
+    }
+
+    const { protocol, hostname, port, origin } = window.location;
+    return { protocol, hostname, port, origin };
+};
+
+const getEnvValue = (key: string): string | undefined => {
+    if (typeof import.meta !== "undefined" && import.meta.env) {
+        const value = import.meta.env[key];
+        if (typeof value === "string" && value.trim().length > 0) {
+            return value.trim();
+        }
+    }
+    return undefined;
+};
+
+const buildCoreHttpBaseUrl = (): string => {
+    const envOrigin = getEnvValue("VITE_MUCORE_HTTP_ORIGIN");
+    if (envOrigin) {
+        return envOrigin;
+    }
+
+    const location = getRuntimeLocation();
+    if (!location) {
+        return `${DEFAULT_HTTP_PROTOCOL}//127.0.0.1:${DEFAULT_CORE_PORT}`;
+    }
+
+    const explicitPort = getEnvValue("VITE_MUCORE_PORT");
+    if (explicitPort) {
+        return `${location.protocol}//${location.hostname}:${explicitPort}`;
+    }
+
+    if (location.port) {
+        return `${location.protocol}//${location.hostname}:${location.port}`;
+    }
+
+    return location.origin;
+};
+
+const buildCoreWebSocketBaseUrl = (): string => {
+    const envOrigin = getEnvValue("VITE_MUCORE_WS_ORIGIN");
+    if (envOrigin) {
+        return envOrigin;
+    }
+
+    const location = getRuntimeLocation();
+    if (!location) {
+        return `ws://127.0.0.1:${DEFAULT_CORE_PORT}`;
+    }
+
+    const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
+    const explicitPort = getEnvValue("VITE_MUCORE_PORT");
+
+    if (explicitPort) {
+        return `${wsProtocol}//${location.hostname}:${explicitPort}`;
+    }
+
+    if (location.port) {
+        return `${wsProtocol}//${location.hostname}:${location.port}`;
+    }
+
+    return `${wsProtocol}//${location.hostname}`;
+};
+
+const coreHttpBaseUrl = buildCoreHttpBaseUrl();
+const coreWebSocketBaseUrl = buildCoreWebSocketBaseUrl();
 
 export const apiClient = axios.create({
-    baseURL: `${document.URL.split(new RegExp("/+"))[0]}//${backend.split(":")[0]}:20038`, //TODO: Product版更改
+    baseURL: coreHttpBaseUrl,
     allowAbsoluteUrls: true,
     timeout: 10000,
     headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    },
 });
 
 export class MuWebSocket {
-    private backend = `ws://${backend.split(":")[0]}`  // TODO: 多前端
-    private port = 20038 /*document.URL.split(new RegExp("/+"))[1].split(":")[1]*/ //TODO: Product版更改
     private readonly instance: WebSocket;
-    private msg: any
-    private isConnected = false
+    private lastMessage: any;
+    private isConnected = false;
+    private readonly pendingResolvers: Array<(value: any) => void> = [];
 
-    constructor(path: String) {
-        this.instance = new WebSocket(`${this.backend}:${this.port}/${path}`)
-        this.instance.onopen = (e) => {
-            console.log("WebSocket Connected >> " + e)
-            this.isConnected = true
-        }
+    constructor(path: string) {
+        const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+        this.instance = new WebSocket(`${coreWebSocketBaseUrl}/${normalizedPath}`);
+
+        this.instance.onopen = () => {
+            this.isConnected = true;
+            console.log("WebSocket connected");
+        };
+
         this.instance.onerror = (e) => {
-            console.log("Websocket Occurred an Error! >> " + e.type.toString())
-            this.instance.close()
-        }
+            console.error("WebSocket error:", e);
+        };
+
         this.instance.onmessage = (e) => {
-            this.msg = e.data
-        }
+            const raw = e.data;
+            try {
+                this.lastMessage = typeof raw === "string" ? JSON.parse(raw) : raw;
+            } catch {
+                this.lastMessage = raw;
+            }
+
+            const resolver = this.pendingResolvers.shift();
+            if (resolver) {
+                resolver(this.lastMessage);
+            }
+        };
+
         this.instance.onclose = (e) => {
-            console.log("Websocket Closed! >> " + e.reason.toString())
-            this.isConnected = false
-        }
+            this.isConnected = false;
+            console.warn("WebSocket closed:", e.reason || "no reason");
+
+            while (this.pendingResolvers.length > 0) {
+                const resolver = this.pendingResolvers.shift();
+                resolver?.(undefined);
+            }
+        };
     }
 
     public getMsg(): any {
-        if(this.isConnected){
-            return JSON.parse(this.msg)
-        }else{
-            return undefined
+        return this.lastMessage;
+    }
+
+    public isConnect(): boolean {
+        return this.isConnected;
+    }
+
+    public send(jsonMsg: any, timeoutMs: number = 10000): Promise<any> {
+        if (!this.instance || this.instance.readyState !== WebSocket.OPEN) {
+            return Promise.reject(new Error("MuCore WebSocket is not connected"));
         }
+
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                const index = this.pendingResolvers.indexOf(wrappedResolve);
+                if (index >= 0) {
+                    this.pendingResolvers.splice(index, 1);
+                }
+                reject(new Error("MuCore WebSocket response timeout"));
+            }, timeoutMs);
+
+            const wrappedResolve = (value: any) => {
+                clearTimeout(timeout);
+                resolve(value);
+            };
+
+            this.pendingResolvers.push(wrappedResolve);
+
+            try {
+                this.instance.send(JSON.stringify(jsonMsg));
+            } catch (error) {
+                clearTimeout(timeout);
+                const index = this.pendingResolvers.indexOf(wrappedResolve);
+                if (index >= 0) {
+                    this.pendingResolvers.splice(index, 1);
+                }
+                reject(error);
+            }
+        });
     }
 
-    public isConnect(): boolean{
-        return this.isConnected
-    }
-
-    public send(jsonMsg: any): any {
-        if(this.instance && this.instance.readyState === WebSocket.OPEN){
-            this.instance.send(JSON.stringify(jsonMsg))
-            return this.getMsg()
-        }else{
-            console.warn("Error occurred while send MSG to MuCore, probably MuCore OFFLINE")
-        }
-    }
-
-    public close(){
-        if(this.isConnected){
-            this.isConnected = false
-            this.instance.close()
+    public close() {
+        if (this.instance.readyState === WebSocket.OPEN || this.instance.readyState === WebSocket.CONNECTING) {
+            this.isConnected = false;
+            this.instance.close();
         }
     }
 }
