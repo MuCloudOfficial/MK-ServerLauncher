@@ -10,6 +10,7 @@ interface RuntimeLocation {
 type PendingReceiver = {
     resolve: (value: unknown) => void;
     reject: (reason?: unknown) => void;
+    timer?: ReturnType<typeof setTimeout>;
 };
 
 const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
@@ -80,11 +81,12 @@ const buildCoreHttpBaseUrl = (): string => {
     }
 
     const location = getRuntimeLocation();
-    if (!location) {
-        return "http://localhost";
+    if (location) {
+        return buildRuntimeHttpOrigin(location);
     }
 
-    return buildRuntimeHttpOrigin(location);
+    // SSR / build-time fallback only.
+    return "http://localhost";
 };
 
 const buildCoreWebSocketBaseUrl = (httpBaseUrl: string): string => {
@@ -151,9 +153,13 @@ const isWebSocketAvailable = (): boolean => typeof WebSocket !== "undefined";
 export class MuWebSocket {
     private readonly instance: WebSocket;
     private readonly openPromise: Promise<void>;
+    private resolveOpen?: () => void;
+    private rejectOpen?: (reason?: unknown) => void;
+
     private lastMessage: unknown;
     private isConnected = false;
     private isClosed = false;
+
     private readonly pendingReceivers: PendingReceiver[] = [];
     private readonly bufferedMessages: unknown[] = [];
     private sendChain: Promise<unknown> = Promise.resolve(undefined);
@@ -166,22 +172,32 @@ export class MuWebSocket {
         this.instance = new WebSocket(joinUrl(resolveCoreWebSocketBaseUrl(), path));
 
         this.openPromise = new Promise((resolve, reject) => {
-            this.instance.onopen = () => {
-                this.isConnected = true;
-                resolve();
-                console.log("WebSocket connected");
-            };
-
-            this.instance.onerror = (e) => {
-                if (!this.isConnected) {
-                    reject(new Error("MuCore WebSocket connection failed"));
-                }
-                if (this.isClosed) {
-                    this.flushPendingReceivers(new Error("MuCore WebSocket is closed"));
-                }
-                console.error("WebSocket error:", e);
-            };
+            this.resolveOpen = resolve;
+            this.rejectOpen = reject;
         });
+
+        this.instance.onopen = () => {
+            this.isConnected = true;
+            this.isClosed = false;
+            this.resolveOpen?.();
+            this.resolveOpen = undefined;
+            this.rejectOpen = undefined;
+            console.log("WebSocket connected");
+        };
+
+        this.instance.onerror = (e) => {
+            if (!this.isConnected) {
+                this.rejectOpen?.(new Error("MuCore WebSocket connection failed"));
+                this.rejectOpen = undefined;
+                this.resolveOpen = undefined;
+            }
+
+            if (this.isClosed) {
+                this.flushPendingReceivers(new Error("MuCore WebSocket is closed"));
+            }
+
+            console.error("WebSocket error:", e);
+        };
 
         this.instance.onmessage = (e) => {
             const raw = e.data;
@@ -193,6 +209,9 @@ export class MuWebSocket {
 
             const receiver = this.pendingReceivers.shift();
             if (receiver) {
+                if (receiver.timer) {
+                    clearTimeout(receiver.timer);
+                }
                 receiver.resolve(this.lastMessage);
                 return;
             }
@@ -203,6 +222,9 @@ export class MuWebSocket {
         this.instance.onclose = (e) => {
             this.isConnected = false;
             this.isClosed = true;
+            this.rejectOpen?.(new Error("MuCore WebSocket is closed before opening"));
+            this.rejectOpen = undefined;
+            this.resolveOpen = undefined;
             console.warn("WebSocket closed:", e.reason || "no reason");
             this.flushPendingReceivers(new Error("MuCore WebSocket is closed"));
         };
@@ -211,7 +233,14 @@ export class MuWebSocket {
     private flushPendingReceivers(error: Error): void {
         while (this.pendingReceivers.length > 0) {
             const receiver = this.pendingReceivers.shift();
-            receiver?.reject(error);
+            if (!receiver) {
+                continue;
+            }
+
+            if (receiver.timer) {
+                clearTimeout(receiver.timer);
+            }
+            receiver.reject(error);
         }
     }
 
@@ -251,24 +280,18 @@ export class MuWebSocket {
         }
 
         return new Promise((resolve, reject) => {
-            const receiver: PendingReceiver = { resolve, reject };
-            const timeout = setTimeout(() => {
+            const receiver: PendingReceiver = {
+                resolve,
+                reject,
+            };
+
+            receiver.timer = setTimeout(() => {
                 const index = this.pendingReceivers.indexOf(receiver);
                 if (index >= 0) {
                     this.pendingReceivers.splice(index, 1);
                 }
                 reject(new Error("MuCore WebSocket response timeout"));
             }, timeoutMs);
-
-            receiver.resolve = (value: unknown) => {
-                clearTimeout(timeout);
-                resolve(value);
-            };
-
-            receiver.reject = (reason?: unknown) => {
-                clearTimeout(timeout);
-                reject(reason);
-            };
 
             this.pendingReceivers.push(receiver);
         });
@@ -282,7 +305,8 @@ export class MuWebSocket {
                 throw new Error("MuCore WebSocket is not open");
             }
 
-            this.instance.send(JSON.stringify(jsonMsg));
+            const payload = JSON.stringify(jsonMsg);
+            this.instance.send(payload);
             return this.receive(timeoutMs);
         };
 
@@ -292,10 +316,13 @@ export class MuWebSocket {
     }
 
     public close(): void {
+        this.isConnected = false;
+        this.isClosed = true;
+
         if (this.instance.readyState === WebSocket.OPEN || this.instance.readyState === WebSocket.CONNECTING) {
-            this.isConnected = false;
-            this.isClosed = true;
             this.instance.close();
         }
+
+        this.flushPendingReceivers(new Error("MuCore WebSocket is closed"));
     }
 }
