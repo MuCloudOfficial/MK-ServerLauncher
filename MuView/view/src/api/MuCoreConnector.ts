@@ -61,6 +61,15 @@ const toWebSocketOrigin = (value: string): string | undefined => {
     }
 };
 
+const buildRuntimeHttpOrigin = (location: RuntimeLocation): string => {
+    const explicitPort = getEnvValue("VITE_MUCORE_PORT");
+    if (explicitPort) {
+        return `${location.protocol}//${location.hostname}:${explicitPort}`;
+    }
+
+    return trimTrailingSlash(location.origin);
+};
+
 const buildCoreHttpBaseUrl = (): string => {
     const envOrigin = getEnvValue("VITE_MUCORE_HTTP_ORIGIN");
     if (envOrigin) {
@@ -75,16 +84,7 @@ const buildCoreHttpBaseUrl = (): string => {
         return "http://localhost";
     }
 
-    const explicitPort = getEnvValue("VITE_MUCORE_PORT");
-    if (explicitPort) {
-        return `${location.protocol}//${location.hostname}:${explicitPort}`;
-    }
-
-    if (location.port) {
-        return `${location.protocol}//${location.hostname}:${location.port}`;
-    }
-
-    return trimTrailingSlash(location.origin);
+    return buildRuntimeHttpOrigin(location);
 };
 
 const buildCoreWebSocketBaseUrl = (httpBaseUrl: string): string => {
@@ -146,16 +146,23 @@ const joinUrl = (base: string, path: string): string => {
     }
 };
 
+const isWebSocketAvailable = (): boolean => typeof WebSocket !== "undefined";
+
 export class MuWebSocket {
     private readonly instance: WebSocket;
+    private readonly openPromise: Promise<void>;
     private lastMessage: unknown;
     private isConnected = false;
+    private isClosed = false;
     private readonly pendingReceivers: PendingReceiver[] = [];
     private readonly bufferedMessages: unknown[] = [];
-    private readonly openPromise: Promise<void>;
     private sendChain: Promise<unknown> = Promise.resolve(undefined);
 
     constructor(path: string) {
+        if (!isWebSocketAvailable()) {
+            throw new Error("WebSocket is not available in this runtime");
+        }
+
         this.instance = new WebSocket(joinUrl(resolveCoreWebSocketBaseUrl(), path));
 
         this.openPromise = new Promise((resolve, reject) => {
@@ -166,8 +173,11 @@ export class MuWebSocket {
             };
 
             this.instance.onerror = (e) => {
-                if (this.instance.readyState !== WebSocket.OPEN) {
+                if (!this.isConnected) {
                     reject(new Error("MuCore WebSocket connection failed"));
+                }
+                if (this.isClosed) {
+                    this.flushPendingReceivers(new Error("MuCore WebSocket is closed"));
                 }
                 console.error("WebSocket error:", e);
             };
@@ -192,14 +202,17 @@ export class MuWebSocket {
 
         this.instance.onclose = (e) => {
             this.isConnected = false;
+            this.isClosed = true;
             console.warn("WebSocket closed:", e.reason || "no reason");
-
-            const closeError = new Error("MuCore WebSocket is closed");
-            while (this.pendingReceivers.length > 0) {
-                const receiver = this.pendingReceivers.shift();
-                receiver?.reject(closeError);
-            }
+            this.flushPendingReceivers(new Error("MuCore WebSocket is closed"));
         };
+    }
+
+    private flushPendingReceivers(error: Error): void {
+        while (this.pendingReceivers.length > 0) {
+            const receiver = this.pendingReceivers.shift();
+            receiver?.reject(error);
+        }
     }
 
     public getMsg(): unknown {
@@ -216,7 +229,7 @@ export class MuWebSocket {
             return;
         }
 
-        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING) {
+        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING || this.isClosed) {
             throw new Error("MuCore WebSocket is closed");
         }
 
@@ -233,7 +246,7 @@ export class MuWebSocket {
             return Promise.resolve(this.bufferedMessages.shift());
         }
 
-        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING) {
+        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING || this.isClosed) {
             return Promise.reject(new Error("MuCore WebSocket is closed"));
         }
 
@@ -264,6 +277,11 @@ export class MuWebSocket {
     public async send(jsonMsg: unknown, timeoutMs: number = 10000): Promise<unknown> {
         const dispatch = async (): Promise<unknown> => {
             await this.waitForConnect(timeoutMs);
+
+            if (this.instance.readyState !== WebSocket.OPEN) {
+                throw new Error("MuCore WebSocket is not open");
+            }
+
             this.instance.send(JSON.stringify(jsonMsg));
             return this.receive(timeoutMs);
         };
@@ -276,6 +294,7 @@ export class MuWebSocket {
     public close(): void {
         if (this.instance.readyState === WebSocket.OPEN || this.instance.readyState === WebSocket.CONNECTING) {
             this.isConnected = false;
+            this.isClosed = true;
             this.instance.close();
         }
     }
