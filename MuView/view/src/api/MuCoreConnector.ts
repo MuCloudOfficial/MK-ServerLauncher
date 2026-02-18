@@ -7,8 +7,7 @@ interface RuntimeLocation {
     origin: string;
 }
 
-const DEFAULT_CORE_PORT = "20038";
-const DEFAULT_HTTP_PROTOCOL = "http:";
+const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
 
 const getRuntimeLocation = (): RuntimeLocation | undefined => {
     if (typeof window === "undefined" || !window.location) {
@@ -26,59 +25,72 @@ const getEnvValue = (key: string): string | undefined => {
             return value.trim();
         }
     }
+
     return undefined;
+};
+
+const tryNormalizeOrigin = (value: string): string | undefined => {
+    try {
+        return trimTrailingSlash(new URL(value).toString());
+    } catch {
+        return undefined;
+    }
 };
 
 const buildCoreHttpBaseUrl = (): string => {
     const envOrigin = getEnvValue("VITE_MUCORE_HTTP_ORIGIN");
     if (envOrigin) {
-        return envOrigin;
+        const normalizedEnvOrigin = tryNormalizeOrigin(envOrigin);
+        if (normalizedEnvOrigin) {
+            return normalizedEnvOrigin;
+        }
     }
 
     const location = getRuntimeLocation();
-    if (!location) {
-        return `${DEFAULT_HTTP_PROTOCOL}//127.0.0.1:${DEFAULT_CORE_PORT}`;
+    if (location) {
+        const explicitPort = getEnvValue("VITE_MUCORE_PORT");
+        if (explicitPort) {
+            return `${location.protocol}//${location.hostname}:${explicitPort}`;
+        }
+
+        if (location.port) {
+            return `${location.protocol}//${location.hostname}:${location.port}`;
+        }
+
+        return trimTrailingSlash(location.origin);
     }
 
-    const explicitPort = getEnvValue("VITE_MUCORE_PORT");
-    if (explicitPort) {
-        return `${location.protocol}//${location.hostname}:${explicitPort}`;
-    }
-
-    if (location.port) {
-        return `${location.protocol}//${location.hostname}:${location.port}`;
-    }
-
-    return location.origin;
+    return "http://127.0.0.1";
 };
 
-const buildCoreWebSocketBaseUrl = (): string => {
+const httpToWsOrigin = (httpOrigin: string): string => {
+    try {
+        const url = new URL(httpOrigin);
+        if (url.protocol === "https:") {
+            url.protocol = "wss:";
+        } else if (url.protocol === "http:") {
+            url.protocol = "ws:";
+        }
+        return trimTrailingSlash(url.toString());
+    } catch {
+        return httpOrigin;
+    }
+};
+
+const buildCoreWebSocketBaseUrl = (httpBaseUrl: string): string => {
     const envOrigin = getEnvValue("VITE_MUCORE_WS_ORIGIN");
     if (envOrigin) {
-        return envOrigin;
+        const normalizedEnvOrigin = tryNormalizeOrigin(envOrigin);
+        if (normalizedEnvOrigin) {
+            return normalizedEnvOrigin;
+        }
     }
 
-    const location = getRuntimeLocation();
-    if (!location) {
-        return `ws://127.0.0.1:${DEFAULT_CORE_PORT}`;
-    }
-
-    const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-    const explicitPort = getEnvValue("VITE_MUCORE_PORT");
-
-    if (explicitPort) {
-        return `${wsProtocol}//${location.hostname}:${explicitPort}`;
-    }
-
-    if (location.port) {
-        return `${wsProtocol}//${location.hostname}:${location.port}`;
-    }
-
-    return `${wsProtocol}//${location.hostname}`;
+    return httpToWsOrigin(httpBaseUrl);
 };
 
 const coreHttpBaseUrl = buildCoreHttpBaseUrl();
-const coreWebSocketBaseUrl = buildCoreWebSocketBaseUrl();
+const coreWebSocketBaseUrl = buildCoreWebSocketBaseUrl(coreHttpBaseUrl);
 
 export const apiClient = axios.create({
     baseURL: coreHttpBaseUrl,
@@ -90,24 +102,42 @@ export const apiClient = axios.create({
     },
 });
 
+const normalizePath = (path: string): string => {
+    const cleaned = path.trim().replace(/^\/+/, "");
+    return cleaned.length > 0 ? cleaned : "";
+};
+
+const joinUrl = (base: string, path: string): string => {
+    const normalizedBase = trimTrailingSlash(base);
+    const normalizedPath = normalizePath(path);
+    return normalizedPath.length > 0 ? `${normalizedBase}/${normalizedPath}` : normalizedBase;
+};
+
 export class MuWebSocket {
     private readonly instance: WebSocket;
     private lastMessage: any;
     private isConnected = false;
     private readonly pendingResolvers: Array<(value: any) => void> = [];
+    private readonly bufferedMessages: any[] = [];
+    private openPromise: Promise<void>;
 
     constructor(path: string) {
-        const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
-        this.instance = new WebSocket(`${coreWebSocketBaseUrl}/${normalizedPath}`);
+        this.instance = new WebSocket(joinUrl(coreWebSocketBaseUrl, path));
 
-        this.instance.onopen = () => {
-            this.isConnected = true;
-            console.log("WebSocket connected");
-        };
+        this.openPromise = new Promise((resolve, reject) => {
+            this.instance.onopen = () => {
+                this.isConnected = true;
+                resolve();
+                console.log("WebSocket connected");
+            };
 
-        this.instance.onerror = (e) => {
-            console.error("WebSocket error:", e);
-        };
+            this.instance.onerror = (e) => {
+                if (this.instance.readyState !== WebSocket.OPEN) {
+                    reject(new Error("MuCore WebSocket connection failed"));
+                }
+                console.error("WebSocket error:", e);
+            };
+        });
 
         this.instance.onmessage = (e) => {
             const raw = e.data;
@@ -120,7 +150,10 @@ export class MuWebSocket {
             const resolver = this.pendingResolvers.shift();
             if (resolver) {
                 resolver(this.lastMessage);
+                return;
             }
+
+            this.bufferedMessages.push(this.lastMessage);
         };
 
         this.instance.onclose = (e) => {
@@ -142,9 +175,31 @@ export class MuWebSocket {
         return this.isConnected;
     }
 
-    public send(jsonMsg: any, timeoutMs: number = 10000): Promise<any> {
-        if (!this.instance || this.instance.readyState !== WebSocket.OPEN) {
-            return Promise.reject(new Error("MuCore WebSocket is not connected"));
+    public async waitForConnect(timeoutMs: number = 10000): Promise<void> {
+        if (this.instance.readyState === WebSocket.OPEN) {
+            this.isConnected = true;
+            return;
+        }
+
+        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING) {
+            throw new Error("MuCore WebSocket is closed");
+        }
+
+        await Promise.race([
+            this.openPromise,
+            new Promise<void>((_, reject) => {
+                setTimeout(() => reject(new Error("MuCore WebSocket connect timeout")), timeoutMs);
+            }),
+        ]);
+    }
+
+    public receive(timeoutMs: number = 10000): Promise<any> {
+        if (this.bufferedMessages.length > 0) {
+            return Promise.resolve(this.bufferedMessages.shift());
+        }
+
+        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING) {
+            return Promise.reject(new Error("MuCore WebSocket is closed"));
         }
 
         return new Promise((resolve, reject) => {
@@ -162,18 +217,19 @@ export class MuWebSocket {
             };
 
             this.pendingResolvers.push(wrappedResolve);
-
-            try {
-                this.instance.send(JSON.stringify(jsonMsg));
-            } catch (error) {
-                clearTimeout(timeout);
-                const index = this.pendingResolvers.indexOf(wrappedResolve);
-                if (index >= 0) {
-                    this.pendingResolvers.splice(index, 1);
-                }
-                reject(error);
-            }
         });
+    }
+
+    public async send(jsonMsg: any, timeoutMs: number = 10000): Promise<any> {
+        await this.waitForConnect(timeoutMs);
+
+        try {
+            this.instance.send(JSON.stringify(jsonMsg));
+        } catch (error) {
+            throw error;
+        }
+
+        return this.receive(timeoutMs);
     }
 
     public close() {
