@@ -14,13 +14,16 @@ type PendingReceiver = {
 };
 
 const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
+const normalizePath = (path: string): string => path.trim().replace(/^\/+/, "");
 
 const getRuntimeLocation = (): RuntimeLocation | undefined => {
-    if (typeof window === "undefined" || !window.location) {
+    const maybeWindow = typeof window !== "undefined" ? window : undefined;
+    const location = maybeWindow?.location;
+    if (!location) {
         return undefined;
     }
 
-    const { protocol, hostname, port, origin } = window.location;
+    const { protocol, hostname, port, origin } = location;
     return { protocol, hostname, port, origin };
 };
 
@@ -35,31 +38,40 @@ const getEnvValue = (key: string): string | undefined => {
     return undefined;
 };
 
-const tryNormalizeOrigin = (value: string): string | undefined => {
+const parseAsUrl = (value: string): URL | undefined => {
     try {
-        return trimTrailingSlash(new URL(value).toString());
+        return new URL(value);
     } catch {
         return undefined;
     }
 };
 
-const toWebSocketOrigin = (value: string): string | undefined => {
-    try {
-        const url = new URL(value);
-        if (url.protocol === "https:") {
-            url.protocol = "wss:";
-        } else if (url.protocol === "http:") {
-            url.protocol = "ws:";
-        }
-
-        if (url.protocol !== "ws:" && url.protocol !== "wss:") {
-            return undefined;
-        }
-
-        return trimTrailingSlash(url.toString());
-    } catch {
+const tryNormalizeOrigin = (value: string): string | undefined => {
+    const parsed = parseAsUrl(value);
+    if (!parsed) {
         return undefined;
     }
+
+    return trimTrailingSlash(parsed.toString());
+};
+
+const toWebSocketOrigin = (value: string): string | undefined => {
+    const parsed = parseAsUrl(value);
+    if (!parsed) {
+        return undefined;
+    }
+
+    if (parsed.protocol === "https:") {
+        parsed.protocol = "wss:";
+    } else if (parsed.protocol === "http:") {
+        parsed.protocol = "ws:";
+    }
+
+    if (parsed.protocol !== "ws:" && parsed.protocol !== "wss:") {
+        return undefined;
+    }
+
+    return trimTrailingSlash(parsed.toString());
 };
 
 const buildRuntimeHttpOrigin = (location: RuntimeLocation): string => {
@@ -71,7 +83,7 @@ const buildRuntimeHttpOrigin = (location: RuntimeLocation): string => {
     return trimTrailingSlash(location.origin);
 };
 
-const buildCoreHttpBaseUrl = (): string => {
+const buildCoreHttpBaseUrl = (): string | undefined => {
     const envOrigin = getEnvValue("VITE_MUCORE_HTTP_ORIGIN");
     if (envOrigin) {
         const normalizedEnvOrigin = tryNormalizeOrigin(envOrigin);
@@ -85,11 +97,10 @@ const buildCoreHttpBaseUrl = (): string => {
         return buildRuntimeHttpOrigin(location);
     }
 
-    // SSR / build-time fallback only.
-    return "http://localhost";
+    return undefined;
 };
 
-const buildCoreWebSocketBaseUrl = (httpBaseUrl: string): string => {
+const buildCoreWebSocketBaseUrl = (httpBaseUrl?: string): string | undefined => {
     const envOrigin = getEnvValue("VITE_MUCORE_WS_ORIGIN");
     if (envOrigin) {
         const explicitWsOrigin = toWebSocketOrigin(envOrigin);
@@ -106,16 +117,39 @@ const buildCoreWebSocketBaseUrl = (httpBaseUrl: string): string => {
         }
     }
 
-    const convertedHttpBase = toWebSocketOrigin(httpBaseUrl);
-    if (convertedHttpBase) {
-        return convertedHttpBase;
+    if (httpBaseUrl) {
+        const convertedHttpBase = toWebSocketOrigin(httpBaseUrl);
+        if (convertedHttpBase) {
+            return convertedHttpBase;
+        }
     }
 
-    return "ws://localhost";
+    const location = getRuntimeLocation();
+    if (location) {
+        const runtimeOriginAsWs = toWebSocketOrigin(location.origin);
+        if (runtimeOriginAsWs) {
+            return runtimeOriginAsWs;
+        }
+    }
+
+    return undefined;
 };
 
-const resolveCoreHttpBaseUrl = (): string => buildCoreHttpBaseUrl();
-const resolveCoreWebSocketBaseUrl = (): string => buildCoreWebSocketBaseUrl(resolveCoreHttpBaseUrl());
+const resolveCoreHttpBaseUrl = (): string | undefined => buildCoreHttpBaseUrl();
+const resolveCoreWebSocketBaseUrl = (): string | undefined => buildCoreWebSocketBaseUrl(resolveCoreHttpBaseUrl());
+
+const joinUrl = (base: string, path: string): string => {
+    const normalizedPath = normalizePath(path);
+    if (normalizedPath.length === 0) {
+        return trimTrailingSlash(base);
+    }
+
+    try {
+        return new URL(normalizedPath, `${trimTrailingSlash(base)}/`).toString();
+    } catch {
+        return `${trimTrailingSlash(base)}/${normalizedPath}`;
+    }
+};
 
 export const apiClient = axios.create({
     baseURL: resolveCoreHttpBaseUrl(),
@@ -128,25 +162,12 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-    config.baseURL = resolveCoreHttpBaseUrl();
+    const runtimeBase = resolveCoreHttpBaseUrl();
+    if (runtimeBase) {
+        config.baseURL = runtimeBase;
+    }
     return config;
 });
-
-const normalizePath = (path: string): string => path.trim().replace(/^\/+/, "");
-
-const joinUrl = (base: string, path: string): string => {
-    const normalizedPath = normalizePath(path);
-
-    if (normalizedPath.length === 0) {
-        return trimTrailingSlash(base);
-    }
-
-    try {
-        return new URL(normalizedPath, `${trimTrailingSlash(base)}/`).toString();
-    } catch {
-        return `${trimTrailingSlash(base)}/${normalizedPath}`;
-    }
-};
 
 const isWebSocketAvailable = (): boolean => typeof WebSocket !== "undefined";
 
@@ -169,7 +190,12 @@ export class MuWebSocket {
             throw new Error("WebSocket is not available in this runtime");
         }
 
-        this.instance = new WebSocket(joinUrl(resolveCoreWebSocketBaseUrl(), path));
+        const wsBase = resolveCoreWebSocketBaseUrl();
+        if (!wsBase) {
+            throw new Error("Unable to resolve MuCore WebSocket base URL. Set VITE_MUCORE_WS_ORIGIN or run in browser runtime.");
+        }
+
+        this.instance = new WebSocket(joinUrl(wsBase, path));
 
         this.openPromise = new Promise((resolve, reject) => {
             this.resolveOpen = resolve;
@@ -262,12 +288,20 @@ export class MuWebSocket {
             throw new Error("MuCore WebSocket is closed");
         }
 
-        await Promise.race([
-            this.openPromise,
-            new Promise<void>((_, reject) => {
-                setTimeout(() => reject(new Error("MuCore WebSocket connect timeout")), timeoutMs);
-            }),
-        ]);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
+        try {
+            await Promise.race([
+                this.openPromise,
+                new Promise<void>((_, reject) => {
+                    timer = setTimeout(() => reject(new Error("MuCore WebSocket connect timeout")), timeoutMs);
+                }),
+            ]);
+        } finally {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        }
     }
 
     public receive(timeoutMs: number = 10000): Promise<unknown> {
@@ -301,7 +335,7 @@ export class MuWebSocket {
         const dispatch = async (): Promise<unknown> => {
             await this.waitForConnect(timeoutMs);
 
-            if (this.instance.readyState !== WebSocket.OPEN) {
+            if (this.instance.readyState !== WebSocket.OPEN || this.isClosed) {
                 throw new Error("MuCore WebSocket is not open");
             }
 
@@ -310,8 +344,14 @@ export class MuWebSocket {
             return this.receive(timeoutMs);
         };
 
-        const run = this.sendChain.catch(() => undefined).then(dispatch);
-        this.sendChain = run;
+        const run = this.sendChain
+            .catch(() => undefined)
+            .then(dispatch);
+
+        this.sendChain = run
+            .then(() => undefined)
+            .catch(() => undefined);
+
         return run;
     }
 
