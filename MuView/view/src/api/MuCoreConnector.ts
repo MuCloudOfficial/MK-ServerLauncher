@@ -72,7 +72,7 @@ const buildCoreHttpBaseUrl = (): string => {
 
     const location = getRuntimeLocation();
     if (!location) {
-        return "http://127.0.0.1";
+        return "http://localhost";
     }
 
     const explicitPort = getEnvValue("VITE_MUCORE_PORT");
@@ -109,20 +109,25 @@ const buildCoreWebSocketBaseUrl = (httpBaseUrl: string): string => {
         return convertedHttpBase;
     }
 
-    return "ws://127.0.0.1";
+    return "ws://localhost";
 };
 
-const coreHttpBaseUrl = buildCoreHttpBaseUrl();
-const coreWebSocketBaseUrl = buildCoreWebSocketBaseUrl(coreHttpBaseUrl);
+const resolveCoreHttpBaseUrl = (): string => buildCoreHttpBaseUrl();
+const resolveCoreWebSocketBaseUrl = (): string => buildCoreWebSocketBaseUrl(resolveCoreHttpBaseUrl());
 
 export const apiClient = axios.create({
-    baseURL: coreHttpBaseUrl,
+    baseURL: resolveCoreHttpBaseUrl(),
     allowAbsoluteUrls: true,
     timeout: 10000,
     headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
     },
+});
+
+apiClient.interceptors.request.use((config) => {
+    config.baseURL = resolveCoreHttpBaseUrl();
+    return config;
 });
 
 const normalizePath = (path: string): string => path.trim().replace(/^\/+/, "");
@@ -151,7 +156,7 @@ export class MuWebSocket {
     private sendChain: Promise<unknown> = Promise.resolve(undefined);
 
     constructor(path: string) {
-        this.instance = new WebSocket(joinUrl(coreWebSocketBaseUrl, path));
+        this.instance = new WebSocket(joinUrl(resolveCoreWebSocketBaseUrl(), path));
 
         this.openPromise = new Promise((resolve, reject) => {
             this.instance.onopen = () => {
