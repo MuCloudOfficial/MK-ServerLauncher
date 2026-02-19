@@ -22,6 +22,7 @@ type BufferedMessage = {
 };
 
 const DEFAULT_TIMEOUT_MS = 10000;
+const MAX_BUFFERED_MESSAGES = 200;
 
 const getSetTimeout = (): typeof setTimeout => {
     const runtimeSetTimeout = globalThis.setTimeout;
@@ -79,7 +80,11 @@ const parseAsUrl = (value: string): URL | undefined => {
     }
 };
 
-const parseOriginInput = (value: string, fallbackProtocol: string): URL | undefined => {
+const parseOriginInput = (
+    value: string,
+    fallbackProtocol: string,
+    runtimeLocation?: RuntimeLocation,
+): URL | undefined => {
     const trimmed = value.trim();
     if (trimmed.length === 0) {
         return undefined;
@@ -88,6 +93,10 @@ const parseOriginInput = (value: string, fallbackProtocol: string): URL | undefi
     const direct = parseAsUrl(trimmed);
     if (direct) {
         return direct;
+    }
+
+    if (runtimeLocation && (trimmed.startsWith("/") || trimmed.startsWith("./") || trimmed.startsWith("../"))) {
+        return parseAsUrl(new URL(trimmed, `${trimTrailingSlash(runtimeLocation.origin)}/`).toString());
     }
 
     if (trimmed.startsWith("//")) {
@@ -101,8 +110,12 @@ const parseOriginInput = (value: string, fallbackProtocol: string): URL | undefi
     return undefined;
 };
 
-const normalizeHttpOrigin = (value: string, fallbackProtocol: string = "http:"): string | undefined => {
-    const parsed = parseOriginInput(value, fallbackProtocol);
+const normalizeHttpOrigin = (
+    value: string,
+    fallbackProtocol: string = "http:",
+    runtimeLocation?: RuntimeLocation,
+): string | undefined => {
+    const parsed = parseOriginInput(value, fallbackProtocol, runtimeLocation);
     if (!parsed) {
         return undefined;
     }
@@ -120,8 +133,12 @@ const normalizeHttpOrigin = (value: string, fallbackProtocol: string = "http:"):
     return trimTrailingSlash(parsed.toString());
 };
 
-const normalizeWebSocketOrigin = (value: string, fallbackProtocol: string = "ws:"): string | undefined => {
-    const parsed = parseOriginInput(value, fallbackProtocol);
+const normalizeWebSocketOrigin = (
+    value: string,
+    fallbackProtocol: string = "ws:",
+    runtimeLocation?: RuntimeLocation,
+): string | undefined => {
+    const parsed = parseOriginInput(value, fallbackProtocol, runtimeLocation);
     if (!parsed) {
         return undefined;
     }
@@ -148,7 +165,7 @@ const buildRuntimeHttpOrigin = (location: RuntimeLocation): string => {
     }
 
     const baseHost = explicitHost ?? location.host;
-    const normalizedFromHost = normalizeHttpOrigin(baseHost, location.protocol);
+    const normalizedFromHost = normalizeHttpOrigin(baseHost, location.protocol, location);
     if (normalizedFromHost) {
         if (!explicitPort) {
             return normalizedFromHost;
@@ -180,9 +197,11 @@ const buildCoreHttpBaseUrl = (): string | undefined => {
         "VITE_MUCORE_HTTP_URL",
         "VITE_MUCORE_ORIGIN",
         "VITE_MUCORE_BASE_URL",
+        "VITE_MUCORE_API_ORIGIN",
+        "VITE_MUCORE_API_BASE_URL",
     );
     if (envOrigin) {
-        const normalizedEnvOrigin = normalizeHttpOrigin(envOrigin, runtimeProtocol);
+        const normalizedEnvOrigin = normalizeHttpOrigin(envOrigin, runtimeProtocol, location);
         if (normalizedEnvOrigin) {
             return normalizedEnvOrigin;
         }
@@ -205,21 +224,21 @@ const buildCoreWebSocketBaseUrl = (httpBaseUrl?: string): string | undefined => 
         "VITE_MUCORE_WS_BASE_URL",
     );
     if (envOrigin) {
-        const explicitWsOrigin = normalizeWebSocketOrigin(envOrigin, runtimeProtocol);
+        const explicitWsOrigin = normalizeWebSocketOrigin(envOrigin, runtimeProtocol, location);
         if (explicitWsOrigin) {
             return explicitWsOrigin;
         }
     }
 
     if (httpBaseUrl) {
-        const convertedHttpBase = normalizeWebSocketOrigin(httpBaseUrl, runtimeProtocol);
+        const convertedHttpBase = normalizeWebSocketOrigin(httpBaseUrl, runtimeProtocol, location);
         if (convertedHttpBase) {
             return convertedHttpBase;
         }
     }
 
     if (location) {
-        const runtimeOriginAsWs = normalizeWebSocketOrigin(location.origin, runtimeProtocol);
+        const runtimeOriginAsWs = normalizeWebSocketOrigin(location.origin, runtimeProtocol, location);
         if (runtimeOriginAsWs) {
             return runtimeOriginAsWs;
         }
@@ -254,7 +273,6 @@ const getWebSocketConstructor = (): typeof WebSocket | undefined => {
 };
 
 export const apiClient = axios.create({
-    baseURL: resolveCoreHttpBaseUrl(),
     allowAbsoluteUrls: true,
     timeout: DEFAULT_TIMEOUT_MS,
     headers: {
@@ -291,6 +309,14 @@ const toError = (reason: unknown, fallback: string): Error => {
     }
 
     return new Error(fallback);
+};
+
+const resolveTimeoutMs = (timeoutMs: number): number => {
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+        return DEFAULT_TIMEOUT_MS;
+    }
+
+    return timeoutMs;
 };
 
 const decodeWebSocketPayload = async (raw: unknown): Promise<unknown> => {
@@ -456,6 +482,9 @@ export class MuWebSocket {
         }
 
         this.bufferedMessages.push(nextBuffered);
+        if (this.bufferedMessages.length > MAX_BUFFERED_MESSAGES) {
+            this.bufferedMessages.splice(0, this.bufferedMessages.length - MAX_BUFFERED_MESSAGES);
+        }
     }
 
     private flushPendingReceivers(error: Error): void {
@@ -493,6 +522,8 @@ export class MuWebSocket {
     }
 
     public async waitForConnect(timeoutMs: number = DEFAULT_TIMEOUT_MS): Promise<void> {
+        const effectiveTimeoutMs = resolveTimeoutMs(timeoutMs);
+
         if (this.instance.readyState === getWebSocketReadyState(this.instance)) {
             this.isConnected = true;
             return;
@@ -510,7 +541,7 @@ export class MuWebSocket {
             await Promise.race([
                 this.openPromise,
                 new Promise<void>((_, reject) => {
-                    timer = scheduleTimeout(() => reject(new Error("MuCore WebSocket connect timeout")), timeoutMs);
+                    timer = scheduleTimeout(() => reject(new Error("MuCore WebSocket connect timeout")), effectiveTimeoutMs);
                 }),
             ]);
         } finally {
@@ -525,6 +556,7 @@ export class MuWebSocket {
         minSequence: number = 0,
         matcher?: (payload: unknown) => boolean,
     ): Promise<unknown> {
+        const effectiveTimeoutMs = resolveTimeoutMs(timeoutMs);
         const bufferedIndex = this.bufferedMessages.findIndex((message) => {
             if (message.sequence < minSequence) {
                 return false;
@@ -561,15 +593,16 @@ export class MuWebSocket {
                     this.pendingReceivers.splice(index, 1);
                 }
                 reject(new Error("MuCore WebSocket response timeout"));
-            }, timeoutMs);
+            }, effectiveTimeoutMs);
 
             this.pendingReceivers.push(receiver);
         });
     }
 
     public async send(jsonMsg: unknown, timeoutMs: number = DEFAULT_TIMEOUT_MS): Promise<unknown> {
+        const effectiveTimeoutMs = resolveTimeoutMs(timeoutMs);
         const dispatch = async (): Promise<unknown> => {
-            await this.waitForConnect(timeoutMs);
+            await this.waitForConnect(effectiveTimeoutMs);
             this.ensureOpenState();
 
             const minResponseSequence = this.messageSequence + 1;
@@ -588,7 +621,7 @@ export class MuWebSocket {
                 throw toError(error, "Failed to send MuCore WebSocket payload");
             }
 
-            return this.receive(timeoutMs, minResponseSequence, responseMatcher);
+            return this.receive(effectiveTimeoutMs, minResponseSequence, responseMatcher);
         };
 
         const run = this.sendChain
