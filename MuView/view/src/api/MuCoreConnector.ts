@@ -38,6 +38,30 @@ const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
 const normalizePath = (path: string): string => path.trim().replace(/^\/+/, "");
 const hasProtocol = (value: string): boolean => /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value);
 
+const toHttpProtocol = (value: string | undefined): "http:" | "https:" => {
+    if (value === "https:" || value === "wss:") {
+        return "https:";
+    }
+
+    if (value === "http:" || value === "ws:") {
+        return "http:";
+    }
+
+    return "https:";
+};
+
+const toWebSocketProtocol = (value: string | undefined): "ws:" | "wss:" => {
+    if (value === "https:" || value === "wss:") {
+        return "wss:";
+    }
+
+    if (value === "http:" || value === "ws:") {
+        return "ws:";
+    }
+
+    return "wss:";
+};
+
 const getRuntimeLocation = (): RuntimeLocation | undefined => {
     const globalLocation = typeof globalThis !== "undefined" ? globalThis.location : undefined;
     const windowLocation = typeof window !== "undefined" ? window.location : undefined;
@@ -159,13 +183,19 @@ const normalizeWebSocketOrigin = (
 const buildRuntimeHttpOrigin = (location: RuntimeLocation): string => {
     const explicitHost = getEnvValue("VITE_MUCORE_HOST");
     const explicitPort = getEnvValue("VITE_MUCORE_PORT");
+    const runtimeProtocol = toHttpProtocol(location.protocol);
 
     if (!explicitHost && !explicitPort) {
-        return trimTrailingSlash(location.origin);
+        const runtimeOrigin = normalizeHttpOrigin(location.origin, runtimeProtocol, location);
+        if (runtimeOrigin) {
+            return runtimeOrigin;
+        }
+
+        return `${runtimeProtocol}//${location.host}`;
     }
 
     const baseHost = explicitHost ?? location.host;
-    const normalizedFromHost = normalizeHttpOrigin(baseHost, location.protocol, location);
+    const normalizedFromHost = normalizeHttpOrigin(baseHost, runtimeProtocol, location);
     if (normalizedFromHost) {
         if (!explicitPort) {
             return normalizedFromHost;
@@ -182,15 +212,15 @@ const buildRuntimeHttpOrigin = (location: RuntimeLocation): string => {
 
     const hostForFallback = explicitHost ?? location.hostname;
     if (explicitPort) {
-        return `${location.protocol}//${hostForFallback}:${explicitPort}`;
+        return `${runtimeProtocol}//${hostForFallback}:${explicitPort}`;
     }
 
-    return `${location.protocol}//${hostForFallback}`;
+    return `${runtimeProtocol}//${hostForFallback}`;
 };
 
 const buildCoreHttpBaseUrl = (): string | undefined => {
     const location = getRuntimeLocation();
-    const runtimeProtocol = location?.protocol ?? "http:";
+    const runtimeProtocol = toHttpProtocol(location?.protocol);
 
     const envOrigin = getFirstEnvValue(
         "VITE_MUCORE_HTTP_ORIGIN",
@@ -216,7 +246,7 @@ const buildCoreHttpBaseUrl = (): string | undefined => {
 
 const buildCoreWebSocketBaseUrl = (httpBaseUrl?: string): string | undefined => {
     const location = getRuntimeLocation();
-    const runtimeProtocol = location?.protocol === "https:" ? "wss:" : "ws:";
+    const runtimeProtocol = toWebSocketProtocol(location?.protocol);
 
     const envOrigin = getFirstEnvValue(
         "VITE_MUCORE_WS_ORIGIN",
