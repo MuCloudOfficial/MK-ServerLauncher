@@ -118,6 +118,23 @@ const buildRuntimeHttpOrigin = (location: RuntimeLocation): string => {
         return trimTrailingSlash(location.origin);
     }
 
+    if (explicitHost) {
+        const normalizedFromHost = normalizeHttpOrigin(explicitHost, location.protocol);
+        if (normalizedFromHost) {
+            if (!explicitPort) {
+                return normalizedFromHost;
+            }
+
+            try {
+                const url = new URL(`${trimTrailingSlash(normalizedFromHost)}/`);
+                url.port = explicitPort;
+                return trimTrailingSlash(url.toString());
+            } catch {
+                // fallback below
+            }
+        }
+    }
+
     const host = explicitHost ?? location.hostname;
     const normalizedHost = host.replace(/^\[|\]$/g, "");
 
@@ -132,7 +149,7 @@ const buildCoreHttpBaseUrl = (): string | undefined => {
     const location = getRuntimeLocation();
     const runtimeProtocol = location?.protocol ?? "http:";
 
-    const envOrigin = getEnvValue("VITE_MUCORE_HTTP_ORIGIN") ?? getEnvValue("VITE_MUCORE_ORIGIN");
+    const envOrigin = getEnvValue("VITE_MUCORE_HTTP_ORIGIN") ?? getEnvValue("VITE_MUCORE_ORIGIN") ?? getEnvValue("VITE_MUCORE_BASE_URL");
     if (envOrigin) {
         const normalizedEnvOrigin = normalizeHttpOrigin(envOrigin, runtimeProtocol);
         if (normalizedEnvOrigin) {
@@ -192,6 +209,17 @@ const joinUrl = (base: string, path: string): string => {
     }
 };
 
+const getWebSocketConstructor = (): typeof WebSocket | undefined => {
+    if (typeof globalThis === "undefined") {
+        return undefined;
+    }
+
+    const ctor = globalThis.WebSocket;
+    return typeof ctor === "function" ? ctor : undefined;
+};
+
+const isWebSocketAvailable = (): boolean => !!getWebSocketConstructor();
+
 export const apiClient = axios.create({
     baseURL: resolveCoreHttpBaseUrl(),
     allowAbsoluteUrls: true,
@@ -209,8 +237,6 @@ apiClient.interceptors.request.use((config) => {
     }
     return config;
 });
-
-const isWebSocketAvailable = (): boolean => typeof WebSocket !== "undefined";
 
 const toError = (reason: unknown, fallback: string): Error => {
     if (reason instanceof Error) {
@@ -270,7 +296,8 @@ export class MuWebSocket {
     private sendChain: Promise<void> = Promise.resolve();
 
     constructor(path: string) {
-        if (!isWebSocketAvailable()) {
+        const WebSocketCtor = getWebSocketConstructor();
+        if (!WebSocketCtor || !isWebSocketAvailable()) {
             throw new Error("WebSocket is not available in this runtime");
         }
 
@@ -279,7 +306,7 @@ export class MuWebSocket {
             throw new Error("Unable to resolve MuCore WebSocket base URL. Set VITE_MUCORE_WS_ORIGIN or VITE_MUCORE_HTTP_ORIGIN.");
         }
 
-        this.instance = new WebSocket(joinUrl(wsBase, path));
+        this.instance = new WebSocketCtor(joinUrl(wsBase, path));
 
         this.openPromise = new Promise((resolve, reject) => {
             this.resolveOpen = resolve;
@@ -296,22 +323,30 @@ export class MuWebSocket {
         };
 
         this.instance.onerror = (event) => {
-            this.connectionError = new Error("MuCore WebSocket connection error");
+            const nextError = new Error("MuCore WebSocket connection error");
+            this.connectionError = nextError;
             if (!this.isConnected) {
-                this.rejectOpen?.(this.connectionError);
+                this.rejectOpen?.(nextError);
                 this.rejectOpen = undefined;
                 this.resolveOpen = undefined;
             }
 
-            if (this.isClosed) {
-                this.flushPendingReceivers(this.connectionError);
+            if (this.pendingReceivers.length > 0) {
+                this.flushPendingReceivers(nextError);
             }
 
             console.error("WebSocket error:", event);
         };
 
         this.instance.onmessage = async (event) => {
-            const message = await decodeWebSocketPayload(event.data);
+            let message: unknown;
+            try {
+                message = await decodeWebSocketPayload(event.data);
+            } catch (error) {
+                message = event.data;
+                console.error("Failed to decode MuCore WebSocket payload:", error);
+            }
+
             this.lastMessage = message;
 
             const receiver = this.pendingReceivers.shift();
