@@ -224,8 +224,6 @@ const getWebSocketConstructor = (): typeof WebSocket | undefined => {
     return typeof ctor === "function" ? ctor : undefined;
 };
 
-const isWebSocketAvailable = (): boolean => !!getWebSocketConstructor();
-
 export const apiClient = axios.create({
     baseURL: resolveCoreHttpBaseUrl(),
     allowAbsoluteUrls: true,
@@ -243,6 +241,16 @@ apiClient.interceptors.request.use((config) => {
     }
     return config;
 });
+
+const getWebSocketReadyState = (instance: WebSocket): number => {
+    const ctor = instance.constructor as typeof WebSocket;
+    return ctor.OPEN;
+};
+
+const isWebSocketClosedState = (instance: WebSocket): boolean => {
+    const ctor = instance.constructor as typeof WebSocket;
+    return instance.readyState === ctor.CLOSED || instance.readyState === ctor.CLOSING;
+};
 
 const toError = (reason: unknown, fallback: string): Error => {
     if (reason instanceof Error) {
@@ -304,7 +312,7 @@ export class MuWebSocket {
 
     constructor(path: string) {
         const WebSocketCtor = getWebSocketConstructor();
-        if (!WebSocketCtor || !isWebSocketAvailable()) {
+        if (!WebSocketCtor) {
             throw new Error("WebSocket is not available in this runtime");
         }
 
@@ -361,13 +369,13 @@ export class MuWebSocket {
                 payload: this.lastMessage,
             };
 
-            const receiver = this.pendingReceivers[0];
-            if (receiver && nextBuffered.sequence >= receiver.minSequence) {
-                this.pendingReceivers.shift();
-                if (receiver.timer) {
+            const receiverIndex = this.pendingReceivers.findIndex((pending) => nextBuffered.sequence >= pending.minSequence);
+            if (receiverIndex >= 0) {
+                const [receiver] = this.pendingReceivers.splice(receiverIndex, 1);
+                if (receiver?.timer) {
                     clearTimeout(receiver.timer);
                 }
-                receiver.resolve(nextBuffered.payload);
+                receiver?.resolve(nextBuffered.payload);
                 return;
             }
 
@@ -400,7 +408,7 @@ export class MuWebSocket {
     }
 
     private ensureOpenState(): void {
-        if (this.instance.readyState === WebSocket.OPEN && !this.isClosed) {
+        if (this.instance.readyState === getWebSocketReadyState(this.instance) && !this.isClosed) {
             return;
         }
 
@@ -420,12 +428,12 @@ export class MuWebSocket {
     }
 
     public async waitForConnect(timeoutMs: number = DEFAULT_TIMEOUT_MS): Promise<void> {
-        if (this.instance.readyState === WebSocket.OPEN) {
+        if (this.instance.readyState === getWebSocketReadyState(this.instance)) {
             this.isConnected = true;
             return;
         }
 
-        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING || this.isClosed) {
+        if (isWebSocketClosedState(this.instance) || this.isClosed) {
             throw this.connectionError ?? new Error("MuCore WebSocket is closed");
         }
 
@@ -452,7 +460,7 @@ export class MuWebSocket {
             return Promise.resolve(message.payload);
         }
 
-        if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING || this.isClosed) {
+        if (isWebSocketClosedState(this.instance) || this.isClosed) {
             return Promise.reject(this.connectionError ?? new Error("MuCore WebSocket is closed"));
         }
 
@@ -513,7 +521,8 @@ export class MuWebSocket {
         this.isConnected = false;
         this.isClosed = true;
 
-        if (this.instance.readyState === WebSocket.OPEN || this.instance.readyState === WebSocket.CONNECTING) {
+        const ctor = this.instance.constructor as typeof WebSocket;
+        if (this.instance.readyState === ctor.OPEN || this.instance.readyState === ctor.CONNECTING) {
             this.instance.close();
         }
 
