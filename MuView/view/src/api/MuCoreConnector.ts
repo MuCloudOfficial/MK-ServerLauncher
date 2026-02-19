@@ -14,6 +14,7 @@ type PendingReceiver = {
     minSequence: number;
     matcher?: (payload: unknown) => boolean;
     timer?: ReturnType<typeof setTimeout>;
+    settled?: boolean;
 };
 
 type BufferedMessage = {
@@ -252,6 +253,8 @@ const buildCoreWebSocketBaseUrl = (httpBaseUrl?: string): string | undefined => 
         "VITE_MUCORE_WS_ORIGIN",
         "VITE_MUCORE_WS_URL",
         "VITE_MUCORE_WS_BASE_URL",
+        "VITE_MUCORE_ORIGIN",
+        "VITE_MUCORE_BASE_URL",
     );
     if (envOrigin) {
         const explicitWsOrigin = normalizeWebSocketOrigin(envOrigin, runtimeProtocol, location);
@@ -581,12 +584,72 @@ export class MuWebSocket {
         }
     }
 
+    private registerPendingReceiver(
+        timeoutMs: number,
+        minSequence: number,
+        matcher?: (payload: unknown) => boolean,
+    ): { promise: Promise<unknown>; cancel: (reason: Error) => void } {
+        const effectiveTimeoutMs = resolveTimeoutMs(timeoutMs);
+        const scheduleTimeout = getSetTimeout();
+
+        let receiver: PendingReceiver | undefined;
+        const promise = new Promise<unknown>((resolve, reject) => {
+            const nextReceiver: PendingReceiver = {
+                resolve: (value: unknown) => {
+                    if (nextReceiver.settled) {
+                        return;
+                    }
+                    nextReceiver.settled = true;
+                    resolve(value);
+                },
+                reject: (reason?: unknown) => {
+                    if (nextReceiver.settled) {
+                        return;
+                    }
+                    nextReceiver.settled = true;
+                    reject(reason);
+                },
+                minSequence,
+                matcher,
+            };
+
+            nextReceiver.timer = scheduleTimeout(() => {
+                const index = this.pendingReceivers.indexOf(nextReceiver);
+                if (index >= 0) {
+                    this.pendingReceivers.splice(index, 1);
+                }
+                nextReceiver.reject(new Error("MuCore WebSocket response timeout"));
+            }, effectiveTimeoutMs);
+
+            receiver = nextReceiver;
+            this.pendingReceivers.push(nextReceiver);
+        });
+
+        const cancel = (reason: Error): void => {
+            if (!receiver) {
+                return;
+            }
+
+            const index = this.pendingReceivers.indexOf(receiver);
+            if (index >= 0) {
+                this.pendingReceivers.splice(index, 1);
+            }
+
+            if (receiver.timer) {
+                getClearTimeout()(receiver.timer);
+            }
+
+            receiver.reject(reason);
+        };
+
+        return { promise, cancel };
+    }
+
     public receive(
         timeoutMs: number = DEFAULT_TIMEOUT_MS,
         minSequence: number = 0,
         matcher?: (payload: unknown) => boolean,
     ): Promise<unknown> {
-        const effectiveTimeoutMs = resolveTimeoutMs(timeoutMs);
         const bufferedIndex = this.bufferedMessages.findIndex((message) => {
             if (message.sequence < minSequence) {
                 return false;
@@ -608,25 +671,7 @@ export class MuWebSocket {
             return Promise.reject(this.connectionError ?? new Error("MuCore WebSocket is closed"));
         }
 
-        return new Promise((resolve, reject) => {
-            const scheduleTimeout = getSetTimeout();
-            const receiver: PendingReceiver = {
-                resolve,
-                reject,
-                minSequence,
-                matcher,
-            };
-
-            receiver.timer = scheduleTimeout(() => {
-                const index = this.pendingReceivers.indexOf(receiver);
-                if (index >= 0) {
-                    this.pendingReceivers.splice(index, 1);
-                }
-                reject(new Error("MuCore WebSocket response timeout"));
-            }, effectiveTimeoutMs);
-
-            this.pendingReceivers.push(receiver);
-        });
+        return this.registerPendingReceiver(timeoutMs, minSequence, matcher).promise;
     }
 
     public async send(jsonMsg: unknown, timeoutMs: number = DEFAULT_TIMEOUT_MS): Promise<unknown> {
@@ -645,13 +690,20 @@ export class MuWebSocket {
                 throw toError(error, "Failed to serialize MuCore WebSocket payload");
             }
 
+            const responseReceiver = this.registerPendingReceiver(
+                effectiveTimeoutMs,
+                minResponseSequence,
+                responseMatcher,
+            );
+
             try {
                 this.instance.send(payload);
             } catch (error) {
+                responseReceiver.cancel(toError(error, "Failed to send MuCore WebSocket payload"));
                 throw toError(error, "Failed to send MuCore WebSocket payload");
             }
 
-            return this.receive(effectiveTimeoutMs, minResponseSequence, responseMatcher);
+            return responseReceiver.promise;
         };
 
         const run = this.sendChain
