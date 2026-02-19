@@ -11,7 +11,13 @@ interface RuntimeLocation {
 type PendingReceiver = {
     resolve: (value: unknown) => void;
     reject: (reason?: unknown) => void;
+    minSequence: number;
     timer?: ReturnType<typeof setTimeout>;
+};
+
+type BufferedMessage = {
+    sequence: number;
+    payload: unknown;
 };
 
 const DEFAULT_TIMEOUT_MS = 10000;
@@ -168,7 +174,7 @@ const buildCoreWebSocketBaseUrl = (httpBaseUrl?: string): string | undefined => 
     const location = getRuntimeLocation();
     const runtimeProtocol = location?.protocol === "https:" ? "wss:" : "ws:";
 
-    const envOrigin = getEnvValue("VITE_MUCORE_WS_ORIGIN");
+    const envOrigin = getEnvValue("VITE_MUCORE_WS_ORIGIN") ?? getEnvValue("VITE_MUCORE_WS_BASE_URL");
     if (envOrigin) {
         const explicitWsOrigin = normalizeWebSocketOrigin(envOrigin, runtimeProtocol);
         if (explicitWsOrigin) {
@@ -292,7 +298,8 @@ export class MuWebSocket {
     private connectionError?: Error;
 
     private readonly pendingReceivers: PendingReceiver[] = [];
-    private readonly bufferedMessages: unknown[] = [];
+    private readonly bufferedMessages: BufferedMessage[] = [];
+    private messageSequence = 0;
     private sendChain: Promise<void> = Promise.resolve();
 
     constructor(path: string) {
@@ -348,17 +355,23 @@ export class MuWebSocket {
             }
 
             this.lastMessage = message;
+            this.messageSequence += 1;
+            const nextBuffered: BufferedMessage = {
+                sequence: this.messageSequence,
+                payload: this.lastMessage,
+            };
 
-            const receiver = this.pendingReceivers.shift();
-            if (receiver) {
+            const receiver = this.pendingReceivers[0];
+            if (receiver && nextBuffered.sequence >= receiver.minSequence) {
+                this.pendingReceivers.shift();
                 if (receiver.timer) {
                     clearTimeout(receiver.timer);
                 }
-                receiver.resolve(this.lastMessage);
+                receiver.resolve(nextBuffered.payload);
                 return;
             }
 
-            this.bufferedMessages.push(this.lastMessage);
+            this.bufferedMessages.push(nextBuffered);
         };
 
         this.instance.onclose = (event) => {
@@ -432,9 +445,11 @@ export class MuWebSocket {
         }
     }
 
-    public receive(timeoutMs: number = DEFAULT_TIMEOUT_MS): Promise<unknown> {
-        if (this.bufferedMessages.length > 0) {
-            return Promise.resolve(this.bufferedMessages.shift());
+    public receive(timeoutMs: number = DEFAULT_TIMEOUT_MS, minSequence: number = 0): Promise<unknown> {
+        const bufferedIndex = this.bufferedMessages.findIndex((message) => message.sequence >= minSequence);
+        if (bufferedIndex >= 0) {
+            const [message] = this.bufferedMessages.splice(bufferedIndex, 1);
+            return Promise.resolve(message.payload);
         }
 
         if (this.instance.readyState === WebSocket.CLOSED || this.instance.readyState === WebSocket.CLOSING || this.isClosed) {
@@ -445,6 +460,7 @@ export class MuWebSocket {
             const receiver: PendingReceiver = {
                 resolve,
                 reject,
+                minSequence,
             };
 
             receiver.timer = setTimeout(() => {
@@ -464,6 +480,8 @@ export class MuWebSocket {
             await this.waitForConnect(timeoutMs);
             this.ensureOpenState();
 
+            const minResponseSequence = this.messageSequence + 1;
+
             let payload: string;
             try {
                 payload = JSON.stringify(jsonMsg);
@@ -477,7 +495,7 @@ export class MuWebSocket {
                 throw toError(error, "Failed to send MuCore WebSocket payload");
             }
 
-            return this.receive(timeoutMs);
+            return this.receive(timeoutMs, minResponseSequence);
         };
 
         const run = this.sendChain
