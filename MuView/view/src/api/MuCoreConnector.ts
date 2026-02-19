@@ -21,8 +21,8 @@ const normalizePath = (path: string): string => path.trim().replace(/^\/+/, "");
 const hasProtocol = (value: string): boolean => /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value);
 
 const getRuntimeLocation = (): RuntimeLocation | undefined => {
-    const maybeWindow = typeof window !== "undefined" ? window : undefined;
-    const location = maybeWindow?.location;
+    const globalLocation = typeof globalThis !== "undefined" ? globalThis.location : undefined;
+    const location = globalLocation;
     if (!location) {
         return undefined;
     }
@@ -224,6 +224,36 @@ const toError = (reason: unknown, fallback: string): Error => {
     return new Error(fallback);
 };
 
+const decodeWebSocketPayload = async (raw: unknown): Promise<unknown> => {
+    if (typeof raw === "string") {
+        try {
+            return JSON.parse(raw);
+        } catch {
+            return raw;
+        }
+    }
+
+    if (raw instanceof ArrayBuffer) {
+        const text = new TextDecoder().decode(raw);
+        try {
+            return JSON.parse(text);
+        } catch {
+            return text;
+        }
+    }
+
+    if (typeof Blob !== "undefined" && raw instanceof Blob) {
+        const text = await raw.text();
+        try {
+            return JSON.parse(text);
+        } catch {
+            return text;
+        }
+    }
+
+    return raw;
+};
+
 export class MuWebSocket {
     private readonly instance: WebSocket;
     private readonly openPromise: Promise<void>;
@@ -280,13 +310,9 @@ export class MuWebSocket {
             console.error("WebSocket error:", event);
         };
 
-        this.instance.onmessage = (event) => {
-            const raw = event.data;
-            try {
-                this.lastMessage = typeof raw === "string" ? JSON.parse(raw) : raw;
-            } catch {
-                this.lastMessage = raw;
-            }
+        this.instance.onmessage = async (event) => {
+            const message = await decodeWebSocketPayload(event.data);
+            this.lastMessage = message;
 
             const receiver = this.pendingReceivers.shift();
             if (receiver) {
@@ -410,7 +436,12 @@ export class MuWebSocket {
                 throw toError(error, "Failed to serialize MuCore WebSocket payload");
             }
 
-            this.instance.send(payload);
+            try {
+                this.instance.send(payload);
+            } catch (error) {
+                throw toError(error, "Failed to send MuCore WebSocket payload");
+            }
+
             return this.receive(timeoutMs);
         };
 
