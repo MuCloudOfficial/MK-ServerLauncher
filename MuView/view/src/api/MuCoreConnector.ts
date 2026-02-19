@@ -22,6 +22,16 @@ type BufferedMessage = {
 
 const DEFAULT_TIMEOUT_MS = 10000;
 
+const getSetTimeout = (): typeof setTimeout => {
+    const runtimeSetTimeout = globalThis.setTimeout;
+    return typeof runtimeSetTimeout === "function" ? runtimeSetTimeout : setTimeout;
+};
+
+const getClearTimeout = (): typeof clearTimeout => {
+    const runtimeClearTimeout = globalThis.clearTimeout;
+    return typeof runtimeClearTimeout === "function" ? runtimeClearTimeout : clearTimeout;
+};
+
 const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
 const normalizePath = (path: string): string => path.trim().replace(/^\/+/, "");
 const hasProtocol = (value: string): boolean => /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value);
@@ -309,6 +319,7 @@ export class MuWebSocket {
     private readonly bufferedMessages: BufferedMessage[] = [];
     private messageSequence = 0;
     private sendChain: Promise<void> = Promise.resolve();
+    private messageHandleChain: Promise<void> = Promise.resolve();
 
     constructor(path: string) {
         const WebSocketCtor = getWebSocketConstructor();
@@ -353,33 +364,10 @@ export class MuWebSocket {
             console.error("WebSocket error:", event);
         };
 
-        this.instance.onmessage = async (event) => {
-            let message: unknown;
-            try {
-                message = await decodeWebSocketPayload(event.data);
-            } catch (error) {
-                message = event.data;
-                console.error("Failed to decode MuCore WebSocket payload:", error);
-            }
-
-            this.lastMessage = message;
-            this.messageSequence += 1;
-            const nextBuffered: BufferedMessage = {
-                sequence: this.messageSequence,
-                payload: this.lastMessage,
-            };
-
-            const receiverIndex = this.pendingReceivers.findIndex((pending) => nextBuffered.sequence >= pending.minSequence);
-            if (receiverIndex >= 0) {
-                const [receiver] = this.pendingReceivers.splice(receiverIndex, 1);
-                if (receiver?.timer) {
-                    clearTimeout(receiver.timer);
-                }
-                receiver?.resolve(nextBuffered.payload);
-                return;
-            }
-
-            this.bufferedMessages.push(nextBuffered);
+        this.instance.onmessage = (event) => {
+            this.messageHandleChain = this.messageHandleChain
+                .catch(() => undefined)
+                .then(() => this.handleIncomingMessage(event.data));
         };
 
         this.instance.onclose = (event) => {
@@ -393,6 +381,35 @@ export class MuWebSocket {
         };
     }
 
+    private async handleIncomingMessage(rawData: unknown): Promise<void> {
+        let message: unknown;
+        try {
+            message = await decodeWebSocketPayload(rawData);
+        } catch (error) {
+            message = rawData;
+            console.error("Failed to decode MuCore WebSocket payload:", error);
+        }
+
+        this.lastMessage = message;
+        this.messageSequence += 1;
+        const nextBuffered: BufferedMessage = {
+            sequence: this.messageSequence,
+            payload: this.lastMessage,
+        };
+
+        const receiverIndex = this.pendingReceivers.findIndex((pending) => nextBuffered.sequence >= pending.minSequence);
+        if (receiverIndex >= 0) {
+            const [receiver] = this.pendingReceivers.splice(receiverIndex, 1);
+            if (receiver?.timer) {
+                getClearTimeout()(receiver.timer);
+            }
+            receiver?.resolve(nextBuffered.payload);
+            return;
+        }
+
+        this.bufferedMessages.push(nextBuffered);
+    }
+
     private flushPendingReceivers(error: Error): void {
         while (this.pendingReceivers.length > 0) {
             const receiver = this.pendingReceivers.shift();
@@ -401,7 +418,7 @@ export class MuWebSocket {
             }
 
             if (receiver.timer) {
-                clearTimeout(receiver.timer);
+                getClearTimeout()(receiver.timer);
             }
             receiver.reject(error);
         }
@@ -438,17 +455,19 @@ export class MuWebSocket {
         }
 
         let timer: ReturnType<typeof setTimeout> | undefined;
+        const scheduleTimeout = getSetTimeout();
+        const cancelTimeout = getClearTimeout();
 
         try {
             await Promise.race([
                 this.openPromise,
                 new Promise<void>((_, reject) => {
-                    timer = setTimeout(() => reject(new Error("MuCore WebSocket connect timeout")), timeoutMs);
+                    timer = scheduleTimeout(() => reject(new Error("MuCore WebSocket connect timeout")), timeoutMs);
                 }),
             ]);
         } finally {
             if (timer) {
-                clearTimeout(timer);
+                cancelTimeout(timer);
             }
         }
     }
@@ -465,13 +484,14 @@ export class MuWebSocket {
         }
 
         return new Promise((resolve, reject) => {
+            const scheduleTimeout = getSetTimeout();
             const receiver: PendingReceiver = {
                 resolve,
                 reject,
                 minSequence,
             };
 
-            receiver.timer = setTimeout(() => {
+            receiver.timer = scheduleTimeout(() => {
                 const index = this.pendingReceivers.indexOf(receiver);
                 if (index >= 0) {
                     this.pendingReceivers.splice(index, 1);
