@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "me.mucloud"
-version = "0.0.1"
+version = "0-beta1"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
