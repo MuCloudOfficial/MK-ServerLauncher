@@ -1,18 +1,16 @@
-import { MuWebSocket } from "@api/MuCoreConnector";
 import type { MuPacket } from "@api/MuPacket";
 
 export class MuPacketSender {
-    private readonly socket: MuWebSocket
+    private readonly MP_ID: string
 
-    constructor(path: string = "ws") {
-        this.socket = new MuWebSocket(path)
+    constructor(mpid: string) {
+        this.MP_ID = mpid
     }
 
-    public send(packet: MuPacket): any {
-        return this.socket.send(packet)
-    }
-
-    public close() {
-        this.socket.close()
+    public muPack(data: any): MuPacket{
+        return {
+            MP_ID: this.MP_ID,
+            MP_DATA: data
+        }
     }
 }

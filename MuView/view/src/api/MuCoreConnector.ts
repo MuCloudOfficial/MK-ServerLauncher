@@ -1,58 +1,78 @@
-import axios from "axios";
+import axios, {type AxiosInstance} from "axios";
+import type {MuPacket} from "@api/MuPacket.ts";
 
-const backend = document.URL.split(new RegExp("/+"))[1]
+type MuCoreSite = {
+    protocol: string,
+    host: string,
+    port: string,
+}
 
-export const apiClient = axios.create({
-    baseURL: `${document.URL.split(new RegExp("/+"))[0]}//${backend.split(":")[0]}:20038`, //TODO: Product版更改
-    allowAbsoluteUrls: true,
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+const currentSite = (): MuCoreSite => {
+    let { protocol, host, port } = window.location
+    return { protocol, host, port }
+}
+
+export class MuHTTPClient{
+    private readonly base: AxiosInstance
+
+    constructor() {
+        let site = currentSite()
+        this.base = axios.create({
+            baseURL: `${site.protocol}://${site.host}`,
+            timeout: 30000,
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
     }
-});
 
-export class MuWebSocket {
-    private backend = `ws://${backend.split(":")[0]}`  // TODO: 多前端
-    private port = 20038 /*document.URL.split(new RegExp("/+"))[1].split(":")[1]*/ //TODO: Product版更改
-    private readonly instance: WebSocket;
-    private msg: any
-    private isConnected = false
+    public async get(api: string): Promise<MuPacket>{
+        return await this.base.get<MuPacket>(api).then(i => {
+            return i.data
+        })
+    }
+}
 
-    constructor(path: String) {
-        this.instance = new WebSocket(`${this.backend}:${this.port}/${path}`)
-        this.instance.onopen = (e) => {
+export class MuWSClient{
+    private readonly base: WebSocket
+    private finalMSG: MuPacket | undefined
+
+    constructor() {
+        let site = currentSite()
+        let wsProtocol = site.protocol == "http" ? "ws" : "wss"
+        this.base = new WebSocket(`${wsProtocol}://${site.host}:${site.port}`)
+        this.base.onopen = (e) => {
             console.log("WebSocket Connected >> " + e)
-            this.isConnected = true
         }
-        this.instance.onerror = (e) => {
+        this.base.onerror = (e) => {
             console.log("Websocket Occurred an Error! >> " + e.type.toString())
-            this.instance.close()
+            this.base.close()
         }
-        this.instance.onmessage = (e) => {
-            this.msg = e.data
+        this.base.onmessage = (e) => {
+            this.finalMSG = e.data
         }
-        this.instance.onclose = (e) => {
+        this.base.onclose = (e) => {
             console.log("Websocket Closed! >> " + e.reason.toString())
-            this.isConnected = false
         }
     }
 
-    public getMsg(): any {
-        if(this.isConnected){
-            return JSON.parse(this.msg)
+    public getMsg(): MuPacket | undefined {
+        if(this.isConnected()){
+            return this.finalMSG
         }else{
             return undefined
         }
     }
 
-    public isConnect(): boolean{
-        return this.isConnected
+    public isConnected(): boolean{
+        return this.base.readyState == this.base.OPEN
     }
 
     public send(jsonMsg: any): any {
-        if(this.instance && this.instance.readyState === WebSocket.OPEN){
-            this.instance.send(JSON.stringify(jsonMsg))
+        if(this.base && this.isConnected()){
+            this.base.send(JSON.stringify(jsonMsg))
             return this.getMsg()
         }else{
             console.warn("Error occurred while send MSG to MuCore, probably MuCore OFFLINE")
@@ -60,9 +80,8 @@ export class MuWebSocket {
     }
 
     public close(){
-        if(this.isConnected){
-            this.isConnected = false
-            this.instance.close()
+        if(this.isConnected()){
+            this.base.close()
         }
     }
 }
