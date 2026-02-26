@@ -17,7 +17,7 @@ dependencies {
     implementation(libs.nightconfig)
     implementation(libs.slf4jAPI)
 
-    testImplementation(libs.kotlin.testJunit)
+    testImplementation(libs.kotlin.test)
 }
 
 tasks.test {

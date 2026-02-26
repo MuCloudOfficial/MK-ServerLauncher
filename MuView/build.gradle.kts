@@ -26,5 +26,5 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.5.13")
     testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation(libs.kotlin.testJunit)
+    testImplementation(libs.kotlin.test)
 }
