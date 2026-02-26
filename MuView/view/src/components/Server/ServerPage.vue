@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {MuWebSocket} from "@api/MuCoreConnector";
+import {MuWSConnection} from "@api/MuCoreConnector";
 import {onMounted, ref} from "vue";
 import type {TabPaneName} from "element-plus";
 import {useRouter} from "vue-router";
@@ -16,7 +16,7 @@ const currentUsing = ref(props.name)
 
 const connectServer = (name: string) => {
   const ws = getServerConnection(name)
-  if(ws.isConnect()){
+  if(ws.isConnected()){
     ws.send({
       type: "",
 
@@ -26,7 +26,7 @@ const connectServer = (name: string) => {
   }
 }
 
-const getServerConnection = (name: string): MuWebSocket => { return new MuWebSocket(`api/v1/server/${name}`) }
+const getServerConnection = (name: string): MuWSConnection => { return new MuWSConnection(`api/v1/server/${name}`) }
 
 const handleRemove = (
     targetName: TabPaneName,

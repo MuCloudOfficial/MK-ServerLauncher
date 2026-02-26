@@ -1,16 +1,17 @@
 import axios, {type AxiosInstance} from "axios";
-import type {MuPacket} from "@api/MuPacket.ts";
 
 type MuCoreSite = {
     protocol: string,
     host: string,
-    port: string,
 }
 
 const currentSite = (): MuCoreSite => {
-    let { protocol, host, port } = window.location
-    return { protocol, host, port }
+    let protocol = "http:"
+    let host = "localhost:20038"
+    return { protocol, host }
 }
+
+console.log(`Current Site: ${currentSite().protocol}//${currentSite().host}`)
 
 export class MuHTTPClient{
     private readonly base: AxiosInstance
@@ -18,31 +19,37 @@ export class MuHTTPClient{
     constructor() {
         let site = currentSite()
         this.base = axios.create({
-            baseURL: `${site.protocol}://${site.host}`,
+            baseURL: `${site.protocol}//${site.host}/`,
+            allowAbsoluteUrls: true,
             timeout: 30000,
-            withCredentials: true,
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                "Content-Type": "application/json",
             },
         })
     }
 
-    public async get(api: string): Promise<MuPacket>{
-        return await this.base.get<MuPacket>(api).then(i => {
+    public async get(api: string): Promise<any>{
+        return await this.base.get<any>(api).then(i => {
+            return i.data
+        })
+    }
+
+    public async post(api: string, data: any): Promise<any>{
+        return await this.base.post<any>(api, data).then(i => {
             return i.data
         })
     }
 }
 
-export class MuWSClient{
+export class MuWSConnection{
     private readonly base: WebSocket
-    private finalMSG: MuPacket | undefined
+    private finalMSG: any
 
-    constructor() {
+    constructor(api: string) {
         let site = currentSite()
-        let wsProtocol = site.protocol == "http" ? "ws" : "wss"
-        this.base = new WebSocket(`${wsProtocol}://${site.host}:${site.port}`)
+        let wsProtocol = site.protocol == "http:" ? "ws" : "wss"
+        console.log(`${wsProtocol}://${site.host}/${api}`)
+        this.base = new WebSocket(`${wsProtocol}://${site.host}/${api}`)
         this.base.onopen = (e) => {
             console.log("WebSocket Connected >> " + e)
         }
@@ -52,13 +59,16 @@ export class MuWSClient{
         }
         this.base.onmessage = (e) => {
             this.finalMSG = e.data
+            console.log(e.data)
+            console.log(this.finalMSG)
+            console.log("Receive?")
         }
         this.base.onclose = (e) => {
             console.log("Websocket Closed! >> " + e.reason.toString())
         }
     }
 
-    public getMsg(): MuPacket | undefined {
+    public getMsg(): any {
         if(this.isConnected()){
             return this.finalMSG
         }else{

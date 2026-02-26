@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import {onMounted, onUnmounted, ref, shallowRef} from "vue";
 import {useTransition} from "@vueuse/core";
-import {MuWebSocket} from "@api/MuCoreConnector";
+import {MuWSConnection} from "@api/MuCoreConnector";
 
 let tsk = -1
-let onLoading = ref(true)
-let ws: MuWebSocket
+let onLoading = ref(false)
+let ws: MuWSConnection
+
 onMounted(() => {
-  ws = new MuWebSocket("overview")
-  let wsMsg = ref()
+  ws = new MuWSConnection("api/v1/overview")
+  let wsMsg
   if(tsk === -1){
     tsk = setInterval(() => {
       if(ws.getMsg() != undefined){
@@ -42,6 +43,9 @@ let MuPluginCount = ref("")
 let MuTemplatePackCount = ref("")
 
 function processCoreData(msg: any){
+  msg = typeof msg === 'string' ? JSON.parse(msg) : msg
+  const data = msg?.MP_DATA ?? msg
+
   let systemStatus = msg.systemStatus
   let serverStatus = msg.serverStatus
   let appinfo = msg.appInfoStatus
