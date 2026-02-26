@@ -9,13 +9,13 @@ import {
   type FormRules,
 } from "element-plus";
 import { h, onMounted, reactive, ref, } from "vue";
-import { apiClient } from "@api/MuCoreConnector";
+import { MuHTTPClient as MHC } from "@api/MuCoreConnector";
 import { SERVER_LIST, getServers} from "@api/MuServer";
 import { ENV_LIST } from "@api/MuEnvironment";
 
 onMounted(() => {
   getServers()
-  apiClient.get("api/v1/server/availableType").then(res => AvailableMCSType = res.data)
+  new MHC().get("api/v1/server/availableType").then(res => AvailableMCSType = res.data)
 })
 
 let AvailableMCSType = ref()
@@ -24,13 +24,13 @@ const AvailableMCSVersion = ref([])
 const AvailableJVMFlagsTemplate = ref<Array<{name: String, flags: String}>>([])
 
 const fetchJVMFlagsTemplates  = () =>{
-  apiClient.get("/api/v1/server/jvmFlagTemplates").then(res => AvailableJVMFlagsTemplate.value = res.data )
+  new MHC().get("/api/v1/server/jvmFlagTemplates").then(res => AvailableJVMFlagsTemplate.value = res.data )
 }
 
 const fetchMCSVersionList = (api: string) => {
   ServerFormData.version = ''
   AvailableMCSVersionLoading.value = true
-  apiClient.get(api).then(res => {
+  new MHC().get(api).then(res => {
     AvailableMCSVersion.value = res.data.versions.reverse()
     AvailableMCSVersionLoading.value = false
   })
@@ -201,7 +201,7 @@ const submitCreateForm = async (form: FormInstance | undefined, data: any) => {
 }
 
 const sendCreateServerRequest = async (data: any): Promise<boolean> => {
-  return apiClient.post(`/api/v1/server/create`, data)
+  return new MHC().post(`/api/v1/server/create`, data)
       .then(r => r.status === 200)
       .catch(e => {
         ElNotification({
@@ -249,7 +249,7 @@ const sendDeleteServerRequest = (target: string) => {
         type: "warning"
       }
   ).then(() => {
-    apiClient.get(`/api/v1/server/delete/${target}`).then( r => {
+    new MHC().get(`/api/v1/server/delete/${target}`).then( r => {
       if(r.status === 200){
         ElNotification({
           type: 'success',
@@ -282,7 +282,7 @@ const sendRemoveServerRequest = (target: string) => {
         type: "warning"
       }
   ).then(() => {
-    apiClient.get(`/api/v1/server/remove/${target}`).then( r => {
+    new MHC().get(`/api/v1/server/remove/${target}`).then( r => {
       if(r.status === 200){
         ElNotification({
           type: 'success',
@@ -416,7 +416,7 @@ const submitImportForm = async (form: FormInstance | undefined, data: any) => {
 }
 
 const sendImportServerRequest = async (data: any): Promise<boolean> => {
-  return apiClient.post(`/api/v1/server/import`, data)
+  return new MHC().post(`/api/v1/server/import`, data)
       .then(r => r.status === 200)
       .catch(e => {
         ElNotification({

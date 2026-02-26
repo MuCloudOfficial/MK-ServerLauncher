@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, reactive, ref} from "vue"
-import {apiClient} from "@api/MuCoreConnector";
+import { MuHTTPClient as MHC} from "@api/MuCoreConnector";
 import {
   type ComponentSize,
   ElNotification,
@@ -60,7 +60,7 @@ const submitForm = async (form: FormInstance | undefined, data: EnvFormTemplate)
 }
 
 const sendCreateEnvRequest = async (form: any): Promise<boolean> => {
-  return apiClient.post(`/api/v1/env/create`, form)
+  return new MHC().post(`/api/v1/env/create`, form)
       .then(r => r.status === 200)
       .catch(e => {
         ElNotification({
@@ -77,7 +77,7 @@ const sendCreateEnvRequest = async (form: any): Promise<boolean> => {
 }
 
 const sendDeleteEnvRequest = async (index: number) => {
-  apiClient.get(`api/v1/env/delete/${index}`)
+  new MHC().get(`api/v1/env/delete/${index}`)
       .then(r => {
         if(r.status === 200){
           ElNotification({
