@@ -34,9 +34,9 @@ class JavaEnvironment(
         val releaseFile = File(path).resolve("release")
         val map = mutableMapOf<String, String>()
         if(!releaseFile.exists()) return map
-        FileReader(releaseFile).useLines { l ->
-            val split = l.toString().split("=")
-            map.put(split[0], split[1])
+        FileReader(releaseFile).readLines().forEach { l ->
+            val split = l.split("=")
+            map[split[0]] = split[1]
         }
         return map
     }

@@ -40,7 +40,7 @@ object EnvPool {
      */
     private fun scanLocalJavaEnv(){
         val sysEnvPath = System.getenv("JAVA_HOME")
-        JavaEnvironment("SysEnv", sysEnvPath)
+        jEnvs.add(JavaEnvironment("SysEnv", sysEnvPath))
     }
 
     /**
