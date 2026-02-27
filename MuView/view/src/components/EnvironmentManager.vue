@@ -114,9 +114,9 @@ const sendDeleteEnvRequest = async (index: number) => {
         Import
       </el-button>
       <el-table :data="ENV_LIST" stripe>
-        <el-table-column prop="name" label="Name" min-width="100"/>
-        <el-table-column prop="version" label="Version" min-width="80"/>
-        <el-table-column prop="path" label="Path" min-width="100"/>
+        <el-table-column prop="EV_NAME" label="Name" min-width="100"/>
+        <el-table-column prop="EV_VER" label="Version" min-width="80"/>
+        <el-table-column prop="EV_LOC" label="Path" min-width="100"/>
         <el-table-column label="Actions" min-width="100" align="right">
           <template #default="scope">
             <el-button size="small" type="danger" @click="sendDeleteEnvRequest(scope.row.name)">Delete</el-button>

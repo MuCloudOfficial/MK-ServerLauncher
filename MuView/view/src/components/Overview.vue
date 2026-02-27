@@ -39,13 +39,8 @@ let TotalServerCount = shallowRef(0)
 
 let MuCoreName = ref("")
 let MuCoreVer = ref("")
-let MuPluginCount = ref("")
-let MuTemplatePackCount = ref("")
 
 function processCoreData(msg: any){
-  msg = typeof msg === 'string' ? JSON.parse(msg) : msg
-  const data = msg?.MP_DATA ?? msg
-
   let systemStatus = msg.systemStatus
   let serverStatus = msg.serverStatus
   let appinfo = msg.appInfoStatus
@@ -59,8 +54,6 @@ function processCoreData(msg: any){
 
   MuCoreName.value = appinfo.core
   MuCoreVer.value = appinfo.ver
-  MuPluginCount.value = appinfo.pluginCount
-  MuTemplatePackCount.value = appinfo.templatePackCount
   onLoading.value = false
 }
 
@@ -136,8 +129,6 @@ addEventListener("resize", () => {
         </template>
         <div><span class="font-bold">Core:</span> {{ MuCoreName }} </div>
         <div><span class="font-bold">Version:</span> {{ MuCoreVer }} </div>
-        <div><span class="font-bold">Plugin Count:</span> {{ MuPluginCount }} </div>
-        <div><span class="font-bold">TemplatePack Count:</span> {{ MuTemplatePackCount }} </div>
       </el-skeleton>
     </el-card>
 
