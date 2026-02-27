@@ -3,6 +3,8 @@ package me.mucloud.application.mk.serverlauncher.muenv
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import me.mucloud.application.mk.serverlauncher.muenv.EnvPool.envFile
+import me.mucloud.application.mk.serverlauncher.muenv.EnvPool.jEnvs
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
@@ -48,13 +50,16 @@ object EnvPool {
      *
      * @return List of JavaEnvironment, element deserialized by JavaEnvironmentAdapter
      */
-    fun scanEnv() =
-        Gson().fromJson<List<JavaEnvironment>>(
-            FileReader(envFile.also { if(!it.exists()) return }, StandardCharsets.UTF_8),
-            object: TypeToken<List<JavaEnvironment>>(){}.type
-        ).forEach { e ->
-            jEnvs.add(e)
+    fun scanEnv() {
+        if(envFile.exists()){
+            Gson().fromJson<List<JavaEnvironment>>(
+                FileReader(envFile, StandardCharsets.UTF_8),
+                object : TypeToken<List<JavaEnvironment>>(){}.type
+            ).forEach{ e ->
+                jEnvs.add(e)
+            }
         }
+    }
 
     /**
      * Write [jEnvs] Object to [envFile] by JavaEnvironmentAdapter

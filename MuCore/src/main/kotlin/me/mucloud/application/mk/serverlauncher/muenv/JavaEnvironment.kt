@@ -22,7 +22,7 @@ class JavaEnvironment(
 
     init{
         val map = getReleaseFileContent()
-        distributionVer = "${map["JAVA_VERSION"] ?: "Unknown"}(${map["IMPLEMENTOR_VERSION"] ?: "Unknown"})"
+        distributionVer = "${map["JAVA_VERSION"] ?: "Unknown"} (${map["IMPLEMENTOR_VERSION"] ?: "Unknown"})"
     }
 
     /**
@@ -36,7 +36,7 @@ class JavaEnvironment(
         if(!releaseFile.exists()) return map
         FileReader(releaseFile).readLines().forEach { l ->
             val split = l.split("=")
-            map[split[0]] = split[1]
+            map[split[0]] = split[1].trim('\"')
         }
         return map
     }
