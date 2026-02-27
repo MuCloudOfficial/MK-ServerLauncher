@@ -5,27 +5,28 @@ import com.google.gson.JsonObject
 /**
  * # MuPacket API
  *
- * The Core Concept of MuPacketAPI
+ * Abstract MuPacket
+ *
+ * Main Parent of MuPacket API
+ *
+ * It should be extended which you want to create MuPacket's SubClass.
  *
  * @since TinyNova V1 | DEV.2
  * @author Mu_Cloud
  */
-abstract class AbstractMuPacket: MuPacket {
+abstract class AbstractMuPacket(
+    protected val type: MuPacketInfo<*>,
+) : MuPacket {
 
-    abstract val id: String
-    abstract val operation: String
+    final override fun getPID(): String = type.pid
 
-
-    final override fun getPID(): String = "mucore:$id:$operation"
-
-    final override fun toJson(): JsonObject = JsonObject().apply{
+    final override fun toJson(): JsonObject = JsonObject().apply {
         addProperty("MP_ID", getPID())
         add("MP_DATA", getData())
+        addProperty("TSS", getTimestamp())
     }
 
     final override fun getTimestamp(): Long = System.currentTimeMillis()
 
     abstract override fun getData(): JsonObject
-
-    abstract override fun operate(): Boolean
 }

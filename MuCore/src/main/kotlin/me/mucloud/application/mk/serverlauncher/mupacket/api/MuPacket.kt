@@ -8,13 +8,12 @@ import com.google.gson.JsonObject
  *
  * The Core Concept of MuPacketAPI
  *
- * @since TinyNova V1 | DEV.2
+ * @since RainyZone V1 | DEV.1
+ * @suppress Incubate API, and may be changed in the future. Do not implement directly! Please extend [AbstractMuPacket]
+ * @see AbstractMuPacket
  * @author Mu_Cloud
  */
 interface MuPacket {
-
-    fun operate(): Boolean
-
     /**
      * MuPacket Customized Data
      *
@@ -22,7 +21,7 @@ interface MuPacket {
      *
      * @return The Serialized MuPacket Custom Data as [JsonElement]
      * @see toJson
-     * @since TinyNova V1 | DEV.1
+     * @since RainyZone V1 | DEV.1
      */
     fun getData(): JsonObject
 
@@ -33,7 +32,7 @@ interface MuPacket {
      *
      * @return The MuPacket ID
      * @see toJson
-     * @since TinyNova V1 | DEV.1
+     * @since RainyZone V1 | DEV.1
      */
     fun getPID(): String
 
@@ -48,7 +47,7 @@ interface MuPacket {
      *
      * @return The Serialized MuPacket as [JsonObject]
      * @see getData
-     * @since TinyNova V1 | DEV.1
+     * @since RainyZone V1 | DEV.1
      */
     fun toJson(): JsonObject
 
@@ -56,7 +55,7 @@ interface MuPacket {
      * MuPacket Timestamp
      *
      * @return The created Time of MuPacket as Millis
-     * @since TinyNova V1 | DEV.1
+     * @since RainyZone V1 | DEV.1
      */
     fun getTimestamp(): Long
 
@@ -65,7 +64,7 @@ interface MuPacket {
      *
      * @param mpdata The MP_DATA content from Json Data by [MuPacket.toJson]
      * @return A [MuPacket] that loaded the MP_DATA json data
-     * @since TinyNova V1 | DEV.1
+     * @since RainyZone V1 | DEV.1
      */
     fun toPacket(mpdata: JsonObject): MuPacket?
 

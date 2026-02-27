@@ -3,12 +3,12 @@ package me.mucloud.application.mk.serverlauncher.mupacket
 import com.google.gson.JsonObject
 import me.mucloud.application.mk.serverlauncher.muenv.JavaEnvironment
 import me.mucloud.application.mk.serverlauncher.mupacket.api.AbstractMuPacket
+import me.mucloud.application.mk.serverlauncher.mupacket.api.MuPacketInfo
 
 abstract class MuEnvPacket(
     val targetJEnv: JavaEnvironment,
-): AbstractMuPacket() {
-
-    final override val id: String = "muenv"
+    type: MuPacketInfo<*>,
+) : AbstractMuPacket(type) {
 
     fun getEnv(): JavaEnvironment = targetJEnv
 
@@ -18,6 +18,4 @@ abstract class MuEnvPacket(
     }
 
     abstract fun getMEPData(): JsonObject
-    abstract override fun operate(): Boolean
-
 }
