@@ -30,7 +30,7 @@ fun Application.initWebSocket() {
             launch {
                 incoming.consumeAsFlow().collect { raw ->
                     if (raw is Frame.Text) {
-                        MuPacketFactory.toPacket(gson.toJsonTree(raw.readText()).asJsonObject).operate()
+                        MuPacketFactory.toPacket(gson.toJsonTree(raw.readText()).asJsonObject)
                     }
                 }
                 target.getServerFlow().collect {
