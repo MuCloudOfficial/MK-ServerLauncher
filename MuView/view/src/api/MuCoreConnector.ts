@@ -30,13 +30,13 @@ export class MuHTTPClient{
 
     public async get(api: string): Promise<any>{
         return await this.base.get<any>(api).then(i => {
-            return i.data
+            return typeof i.data === 'string' ? JSON.parse(i.data) : i.data
         })
     }
 
     public async post(api: string, data: any): Promise<any>{
         return await this.base.post<any>(api, data).then(i => {
-            return i.data
+            return typeof i.data === 'string' ? JSON.parse(i.data) : i.data
         })
     }
 }
@@ -59,9 +59,6 @@ export class MuWSConnection{
         }
         this.base.onmessage = (e) => {
             this.finalMSG = e.data
-            console.log(e.data)
-            console.log(this.finalMSG)
-            console.log("Receive?")
         }
         this.base.onclose = (e) => {
             console.log("Websocket Closed! >> " + e.reason.toString())
@@ -70,7 +67,7 @@ export class MuWSConnection{
 
     public getMsg(): any {
         if(this.isConnected()){
-            return this.finalMSG
+            return typeof this.finalMSG === 'string' ? JSON.parse(this.finalMSG) : this.finalMSG
         }else{
             return undefined
         }

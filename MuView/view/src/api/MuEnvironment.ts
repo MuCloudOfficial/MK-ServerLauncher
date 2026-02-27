@@ -8,5 +8,3 @@ export const getEnvs = () => {
         ENV_LIST.value = r
     })
 }
-
-getEnvs()
