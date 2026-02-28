@@ -1,6 +1,5 @@
 package me.mucloud.application.mk.serverlauncher.mupacket.api
 
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 
 /**
@@ -8,25 +7,15 @@ import com.google.gson.JsonObject
  *
  * The Core Concept of MuPacketAPI
  *
- * @since RainyZone V1 | DEV.1
  * @suppress Incubate API, and may be changed in the future. Do not implement directly! Please extend [AbstractMuPacket]
  * @see AbstractMuPacket
+ * @since RainyZone V1 | DEV.1
  * @author Mu_Cloud
  */
 interface MuPacket {
-    /**
-     * MuPacket Customized Data
-     *
-     * Define the MP_DATA value in [JsonObject] from [toJson]
-     *
-     * @return The Serialized MuPacket Custom Data as [JsonElement]
-     * @see toJson
-     * @since RainyZone V1 | DEV.1
-     */
-    fun getData(): JsonObject
 
     /**
-     * MuPacket ID
+     * ### MuPacket ID
      *
      * Define the MP_ID value in [JsonObject] from [toJson]
      *
@@ -37,7 +26,18 @@ interface MuPacket {
     fun getPID(): String
 
     /**
-     * MuPacket2JSON
+     * ### MuPacket Customized Data
+     *
+     * Define the MP_DATA value in [JsonObject] from [toJson]
+     *
+     * @return The Serialized MuPacket Custom Data as [JsonObject]
+     * @see toJson
+     * @since RainyZone V1 | DEV.1
+     */
+    fun getData(): JsonObject
+
+    /**
+     * ### MuPacket2JSON
      *
      * Basic Structure
      *
@@ -52,20 +52,11 @@ interface MuPacket {
     fun toJson(): JsonObject
 
     /**
-     * MuPacket Timestamp
+     * ### MuPacket Timestamp
      *
      * @return The created Time of MuPacket as Millis
      * @since RainyZone V1 | DEV.1
      */
     fun getTimestamp(): Long
-
-    /**
-     * MuPacket4Json: MP_DATA Converter
-     *
-     * @param mpdata The MP_DATA content from Json Data by [MuPacket.toJson]
-     * @return A [MuPacket] that loaded the MP_DATA json data
-     * @since RainyZone V1 | DEV.1
-     */
-    fun toPacket(mpdata: JsonObject): MuPacket?
 
 }

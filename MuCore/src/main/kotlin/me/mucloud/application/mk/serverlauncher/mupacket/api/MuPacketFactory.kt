@@ -18,6 +18,14 @@ object MuPacketFactory {
     private val MPPool: ConcurrentHashMap<String, MuPacketInfo<out MuPacket>> = ConcurrentHashMap()
     private val MPListeners: ConcurrentHashMap<MuPacketInfo<out MuPacket>, MutableList<MuPacket.() -> Unit>> = ConcurrentHashMap()
 
+    /**
+     * ### MuPacket Register
+     *
+     * @author Mu_Cloud
+     * @param type Implement of MuPacket Info
+     * @throws IllegalArgumentException if MP_ID from [type] is not matches [pattern] or it was registered
+     * @since RainyZone V1 | DEV.1
+     */
     fun <T : MuPacket> regMuPacket(type: MuPacketInfo<T>) {
         val pid = type.pid
         require(!MPPool.containsKey(pid)) { "Invalid MuPacket ID: $pid >> Ambiguous MP_ID" }
@@ -25,6 +33,15 @@ object MuPacketFactory {
         MPPool[pid] = type
     }
 
+    /**
+     * ### Json2Packet | MuPacket Deserializer
+     *
+     * @author Mu_Cloud
+     * @return A [MuPacket] from the JSON Message supplied.
+     * @suppress Attention! It also calls the MuPacket Listeners if MP_ID is registered in [MPListeners]
+     * @throws IllegalStateException if MuPacket Raw is corrupted or MP_ID is not registered
+     * @since RainyZone V1 | DEV.1
+     */
     fun toPacket(raw: JsonObject): MuPacket {
         check(raw.has("MP_ID") && raw.has("MP_DATA")) { "Invalid MuPacket Raw >> Corrupted Raw" }
         val mpid = raw["MP_ID"].asString
@@ -33,14 +50,32 @@ object MuPacketFactory {
         return type.fromData(data).also { callListeners(type, it) }
     }
 
-    fun regMuPacketListener(type: MuPacketInfo<out MuPacket>, listener: MuPacket.() -> Unit) {
+    /**
+     * ### MuPacket Listener Register
+     *
+     * @author Mu_Cloud
+     * @param type Implement of MuPacket Info
+     * @param listener A Lambda function that will be executed in a [toPacket] call with the same [type].
+     * @throws IllegalArgumentException if MP_ID from [type] is not registered
+     * @since RainyZone V1 | DEV.1
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T: MuPacket> regMuPacketListener(type: MuPacketInfo<T>, listener: T.() -> Unit) {
         require(MPPool.containsValue(type)) { "Invalid MuPacket Listener >> Unregistered MuPacket ID: ${type.pid}" }
         val target = MPListeners[type] ?: mutableListOf()
-        target.add(listener)
+        target.add(listener as MuPacket.() -> Unit)
         MPListeners[type] = target
     }
 
-    fun callListeners(type: MuPacketInfo<out MuPacket>, mp: MuPacket) {
+    /**
+     * ### MuPacket Listener Caller
+     *
+     * @author Mu_Cloud
+     * @param type Implement of MuPacket Info
+     * @param mp A [MuPacket] for serving its contents.
+     * @since RainyZone V1 | DEV.1
+     */
+    private fun callListeners(type: MuPacketInfo<out MuPacket>, mp: MuPacket) {
         if(MPListeners.containsKey(type)) {
             MPListeners[type]?.forEach { it(mp) }
         }
